@@ -1,7 +1,6 @@
 package org.apache.jmeter.protocol.irc;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.LayoutManager;
@@ -15,16 +14,14 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
 import javax.swing.border.EtchedBorder;
 import org.apache.jmeter.gui.ServerPanel;
+import org.apache.jmeter.gui.util.VerticalPanel;
 import org.apache.jmeter.samplers.gui.AbstractSamplerGui;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.util.JMeterUtils;
@@ -38,14 +35,16 @@ public class IrcBotGui extends AbstractSamplerGui {
 
 	public IrcBotGui() {
 		// Standard setup
-		setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
+		setLayout(new BorderLayout(0, 5));
 		setBorder(makeBorder());
 		add(makeTitlePanel(), BorderLayout.NORTH); // Add the standard title
 
-		// Specific setup
-		add(new ServerPanel(), BorderLayout.CENTER);
-		add(createBotInfoPanel());
-		add(createTestPanel());
+		//Main Panel
+		VerticalPanel mainPanel = new VerticalPanel();
+		mainPanel.add(new ServerPanel());
+		mainPanel.add(createBotInfoPanel());
+		mainPanel.add(createTestPanel());
+		add(mainPanel, BorderLayout.CENTER);
 	}
 
 	/*
