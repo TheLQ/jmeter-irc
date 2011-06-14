@@ -55,7 +55,6 @@ public class IrcBotGui extends AbstractSamplerGui {
 	 */
 	protected Component createBotInfoPanel() {
 		JPanel botInfoPanel = generatePanel(null, "Bot Information");
-		botInfoPanel.setLayout(new BoxLayout(botInfoPanel, BoxLayout.PAGE_AXIS));
 
 		botInfoPanel.add(generateTextField(new JTextField("jmeterBot", 10), "Bot Prefix: "));
 		botInfoPanel.add(generateTextField(new JTextField("#jmeter", 10), "Channel Prefix: "));
@@ -65,7 +64,6 @@ public class IrcBotGui extends AbstractSamplerGui {
 
 	protected Component createTestPanel() {
 		JPanel testPanel = generatePanel(null, "Test items");
-		testPanel.setLayout(new BoxLayout(testPanel, BoxLayout.PAGE_AXIS));
 
 		//Build checkboxes into groups
 		Map<String, Set<JCheckBox>> checkBoxGroups = new LinkedHashMap<String, Set<JCheckBox>>();
@@ -144,6 +142,8 @@ public class IrcBotGui extends AbstractSamplerGui {
 
 	protected JPanel generatePanel(LayoutManager layout, String title) {
 		JPanel panel = new JPanel(layout);
+		if(layout == null)
+			panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
 		panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), title));
 		return panel;
 	}
