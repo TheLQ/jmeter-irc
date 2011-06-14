@@ -217,12 +217,15 @@ public class IrcBotGui extends AbstractSamplerGui {
 
 	@Override
 	public TestElement createTestElement() {
-		throw new UnsupportedOperationException("Not supported yet.");
+		IrcBotSampler sampler = new IrcBotSampler();
+		modifyTestElement(sampler);
+		return sampler;
 	}
 
 	@Override
-	public void modifyTestElement(TestElement element) {
-		throw new UnsupportedOperationException("Not supported yet.");
+	public void modifyTestElement(TestElement te) {
+		te.clear();
+		configureTestElement(te);
 	}
 
 	public static void main(String[] args) {
