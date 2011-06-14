@@ -38,7 +38,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EtchedBorder;
-import org.apache.jmeter.gui.ServerPanel;
+import org.apache.jmeter.gui.util.HorizontalPanel;
 import org.apache.jmeter.gui.util.VerticalPanel;
 import org.apache.jmeter.samplers.gui.AbstractSamplerGui;
 import org.apache.jmeter.testelement.TestElement;
@@ -75,10 +75,21 @@ public class IrcBotGui extends AbstractSamplerGui {
 
 		//Main Panel
 		VerticalPanel mainPanel = new VerticalPanel();
-		mainPanel.add(new ServerPanel());
+		mainPanel.add(createServerPanel());
 		mainPanel.add(createBotInfoPanel());
 		mainPanel.add(createTestPanel());
 		add(mainPanel, BorderLayout.CENTER);
+	}
+	
+	protected Component createServerPanel() {
+		JPanel ircServer = generatePanel(new BorderLayout(), "IRC Server");
+		
+		HorizontalPanel panel = new HorizontalPanel();
+		panel.add(generateTextField(new JTextField(15), "Server Name or IP: "));
+		panel.add(generateTextField(new JTextField(6), "Port: "));
+		
+		ircServer.add(panel);
+		return ircServer;
 	}
 
 	/*
@@ -142,7 +153,7 @@ public class IrcBotGui extends AbstractSamplerGui {
 		for (Map.Entry<String, Set<JCheckBox>> curEntry : checkBoxGroups.entrySet()) {
 			JPanel checkBoxPanel = generatePanel(null, curEntry.getKey());
 			checkBoxPanel.setLayout(new BoxLayout(checkBoxPanel, BoxLayout.PAGE_AXIS));
-			for(JCheckBox curCheckBox : curEntry.getValue())
+			for (JCheckBox curCheckBox : curEntry.getValue())
 				checkBoxPanel.add(curCheckBox);
 			checkBoxPanelParent.add(checkBoxPanel);
 		}
@@ -179,7 +190,7 @@ public class IrcBotGui extends AbstractSamplerGui {
 
 	protected JPanel generatePanel(LayoutManager layout, String title) {
 		JPanel panel = new JPanel(layout);
-		if(layout == null)
+		if (layout == null)
 			panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
 		panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), title));
 		return panel;
