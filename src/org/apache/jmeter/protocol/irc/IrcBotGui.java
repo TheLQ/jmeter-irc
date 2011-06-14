@@ -85,8 +85,8 @@ public class IrcBotGui extends AbstractSamplerGui {
 		JPanel ircServer = generatePanel(new BorderLayout(), "IRC Server");
 		
 		HorizontalPanel panel = new HorizontalPanel();
-		panel.add(generateTextField(new JTextField(15), "Server Name or IP: "));
-		panel.add(generateTextField(new JTextField(6), "Port: "));
+		panel.add(generateTextField(new JTextField(15), JMeterUtils.getResString("web_server_domain")));
+		panel.add(generateTextField(new JTextField(6), JMeterUtils.getResString("web_server_port")));
 		
 		ircServer.add(panel);
 		return ircServer;
