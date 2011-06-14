@@ -5,15 +5,25 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.LayoutManager;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.border.EtchedBorder;
-import org.apache.jmeter.examples.sampler.ExampleSampler;
 import org.apache.jmeter.gui.ServerPanel;
 import org.apache.jmeter.samplers.gui.AbstractSamplerGui;
 import org.apache.jmeter.testelement.TestElement;
@@ -35,6 +45,7 @@ public class IrcBotGui extends AbstractSamplerGui {
 		// Specific setup
 		add(new ServerPanel(), BorderLayout.CENTER);
 		add(createBotInfoPanel());
+		add(createTestPanel());
 	}
 
 	/*
@@ -50,6 +61,85 @@ public class IrcBotGui extends AbstractSamplerGui {
 		botInfoPanel.add(generateTextField(new JTextField("#jmeter", 10), "Channel Prefix: "));
 
 		return botInfoPanel;
+	}
+
+	protected Component createTestPanel() {
+		JPanel testPanel = generatePanel(null, "Test items");
+		testPanel.setLayout(new BoxLayout(testPanel, BoxLayout.PAGE_AXIS));
+
+		//Build checkboxes into groups
+		Map<String, Set<JCheckBox>> checkBoxGroups = new LinkedHashMap<String, Set<JCheckBox>>();
+		checkBoxGroups.put("Messages", new LinkedHashSet<JCheckBox>() {
+			{
+				add(new JCheckBox("Channel Message"));
+				add(new JCheckBox("Channel Notice"));
+				add(new JCheckBox("Channel Action"));
+				add(new JCheckBox("Private Message"));
+				add(new JCheckBox("Private Action"));
+			}
+		});
+		checkBoxGroups.put("Operator Actions", new LinkedHashSet<JCheckBox>() {
+			{
+				add(new JCheckBox("Operator-Deoperator (self)"));
+				add(new JCheckBox("Voice-Devoice (self)"));
+				add(new JCheckBox("Kick-Join (self)"));
+				add(new JCheckBox("Ban-Unban (self)"));
+			}
+		});
+		checkBoxGroups.put("User Status", new LinkedHashSet<JCheckBox>() {
+			{
+				add(new JCheckBox("Part-Join"));
+				add(new JCheckBox("Quit-Join"));
+			}
+		});
+
+		//Grab all checkboxes into one place
+		final Set<JCheckBox> allCheckBoxes = new LinkedHashSet<JCheckBox>();
+		for (Set<JCheckBox> curSet : checkBoxGroups.values())
+			allCheckBoxes.addAll(curSet);
+
+		//Build checkbox panel
+		JPanel checkBoxPanelParent = new JPanel();
+		for (Map.Entry<String, Set<JCheckBox>> curEntry : checkBoxGroups.entrySet()) {
+			JPanel checkBoxPanel = generatePanel(null, curEntry.getKey());
+			checkBoxPanel.setLayout(new BoxLayout(checkBoxPanel, BoxLayout.PAGE_AXIS));
+			for(JCheckBox curCheckBox : curEntry.getValue())
+				checkBoxPanel.add(curCheckBox);
+			checkBoxPanelParent.add(checkBoxPanel);
+		}
+
+		//Add to main panel
+		testPanel.add(checkBoxPanelParent);
+
+		//Toggle panel
+		JPanel togglePanel = new JPanel();
+
+		JButton checkAll = new JButton("Check All");
+		checkAll.setActionCommand("CheckAll");
+		checkAll.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (e.getActionCommand().equals("CheckAll"))
+					for (JCheckBox curBox : allCheckBoxes)
+						curBox.setSelected(true);
+			}
+		});
+		togglePanel.add(checkAll);
+
+		JButton unCheckAll = new JButton("Uncheck All");
+		unCheckAll.setActionCommand("UnCheckAll");
+		unCheckAll.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (e.getActionCommand().equals("UnCheckAll"))
+					for (JCheckBox curBox : allCheckBoxes)
+						curBox.setSelected(false);
+			}
+		});
+		togglePanel.add(unCheckAll);
+		testPanel.add(togglePanel);
+
+		return testPanel;
 	}
 
 	protected JPanel generatePanel(LayoutManager layout, String title) {
