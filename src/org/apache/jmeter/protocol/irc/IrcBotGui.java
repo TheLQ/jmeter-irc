@@ -65,7 +65,7 @@ public class IrcBotGui extends AbstractSamplerGui {
 	}
 
 	protected Component createTestPanel() {
-		JPanel testPanel = generatePanel(null, "Test items");
+		JPanel testPanel = generatePanel(null, "Possible Actions");
 
 		//Build checkboxes into groups
 		Map<String, Set<JCheckBox>> checkBoxGroups = new LinkedHashMap<String, Set<JCheckBox>>();
