@@ -112,28 +112,24 @@ public class IrcBotGui extends AbstractSamplerGui {
 		//Toggle panel
 		JPanel togglePanel = new JPanel();
 
-		JButton checkAll = new JButton("Check All");
-		checkAll.setActionCommand("CheckAll");
-		checkAll.addActionListener(new ActionListener() {
+		ActionListener checkBoxListener = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (e.getActionCommand().equals("CheckAll"))
 					for (JCheckBox curBox : allCheckBoxes)
 						curBox.setSelected(true);
-			}
-		});
-		togglePanel.add(checkAll);
-
-		JButton unCheckAll = new JButton("Uncheck All");
-		unCheckAll.setActionCommand("UnCheckAll");
-		unCheckAll.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
 				if (e.getActionCommand().equals("UnCheckAll"))
 					for (JCheckBox curBox : allCheckBoxes)
 						curBox.setSelected(false);
 			}
-		});
+		};
+		JButton checkAll = new JButton("Check All");
+		checkAll.setActionCommand("CheckAll");
+		checkAll.addActionListener(checkBoxListener);
+		togglePanel.add(checkAll);
+		JButton unCheckAll = new JButton("Uncheck All");
+		unCheckAll.setActionCommand("UnCheckAll");
+		unCheckAll.addActionListener(checkBoxListener);
 		togglePanel.add(unCheckAll);
 		testPanel.add(togglePanel);
 
