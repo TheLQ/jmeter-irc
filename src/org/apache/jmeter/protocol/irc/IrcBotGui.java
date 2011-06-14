@@ -69,7 +69,13 @@ public class IrcBotGui extends AbstractSamplerGui {
 
 		//Build checkboxes into groups
 		Map<String, Set<JCheckBox>> checkBoxGroups = new LinkedHashMap<String, Set<JCheckBox>>();
-		checkBoxGroups.put("Messages", new LinkedHashSet<JCheckBox>() {
+		checkBoxGroups.put("Commands", new LinkedHashSet<JCheckBox>() {
+			{
+				add(new JCheckBox("Channel Message"));
+				add(new JCheckBox("Private Message"));
+			}
+		});
+		checkBoxGroups.put("Random Messages", new LinkedHashSet<JCheckBox>() {
 			{
 				add(new JCheckBox("Channel Message"));
 				add(new JCheckBox("Channel Notice"));
