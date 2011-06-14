@@ -80,14 +80,14 @@ public class IrcBotGui extends AbstractSamplerGui {
 		mainPanel.add(createTestPanel());
 		add(mainPanel, BorderLayout.CENTER);
 	}
-	
+
 	protected Component createServerPanel() {
 		JPanel ircServer = generatePanel(new BorderLayout(), "IRC Server");
-		
+
 		HorizontalPanel panel = new HorizontalPanel();
 		panel.add(generateTextField(new JTextField(15), JMeterUtils.getResString("web_server_domain")));
 		panel.add(generateTextField(new JTextField(6), JMeterUtils.getResString("web_server_port")));
-		
+
 		ircServer.add(panel);
 		return ircServer;
 	}
@@ -203,6 +203,11 @@ public class IrcBotGui extends AbstractSamplerGui {
 		panel.add(label);
 		panel.add(field);
 		return panel;
+	}
+
+	@Override
+	public String getStaticLabel() {
+		return "IRC Bot";
 	}
 
 	@Override
