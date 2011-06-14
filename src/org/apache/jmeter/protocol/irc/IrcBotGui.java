@@ -18,7 +18,6 @@ import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.EtchedBorder;
 import org.apache.jmeter.gui.ServerPanel;
@@ -32,7 +31,23 @@ import org.apache.jmeter.util.JMeterUtils;
  * @author lordquackstar
  */
 public class IrcBotGui extends AbstractSamplerGui {
-	private JTextArea data;
+	protected JTextField botPrefix;
+	protected JTextField channelPrefix;
+	protected JTextField numChannels;
+	protected JTextField command;
+	protected JCheckBox channelCommand;
+	protected JCheckBox PMCommand;
+	protected JCheckBox channelMessage;
+	protected JCheckBox channelAction;
+	protected JCheckBox channelNotice;
+	protected JCheckBox PMMessage;
+	protected JCheckBox PMAction;
+	protected JCheckBox operatorOp;
+	protected JCheckBox operatorVoice;
+	protected JCheckBox operatorKick;
+	protected JCheckBox operatorBan;
+	protected JCheckBox userPart;
+	protected JCheckBox userQuit;
 
 	public IrcBotGui() {
 		// Standard setup
@@ -56,10 +71,10 @@ public class IrcBotGui extends AbstractSamplerGui {
 	protected Component createBotInfoPanel() {
 		JPanel botInfoPanel = generatePanel(new GridLayout(2, 2), "Bot Information");
 
-		botInfoPanel.add(generateTextField(new JTextField("jmeterBot", 10), "Bot Prefix: "));
-		botInfoPanel.add(generateTextField(new JTextField("#jmeter", 10), "Channel Prefix: "));
-		botInfoPanel.add(generateTextField(new JTextField("1", 10), "Channels: "));
-		botInfoPanel.add(generateTextField(new JTextField("?jmeter", 10), "Command: "));
+		botInfoPanel.add(generateTextField(botPrefix = new JTextField("jmeterBot", 10), "Bot Prefix: "));
+		botInfoPanel.add(generateTextField(channelPrefix = new JTextField("#jmeter", 10), "Channel Prefix: "));
+		botInfoPanel.add(generateTextField(numChannels = new JTextField("1", 10), "Channels: "));
+		botInfoPanel.add(generateTextField(command = new JTextField("?jmeter", 10), "Command: "));
 
 		return botInfoPanel;
 	}
@@ -71,31 +86,31 @@ public class IrcBotGui extends AbstractSamplerGui {
 		Map<String, Set<JCheckBox>> checkBoxGroups = new LinkedHashMap<String, Set<JCheckBox>>();
 		checkBoxGroups.put("Commands", new LinkedHashSet<JCheckBox>() {
 			{
-				add(new JCheckBox("Channel Message"));
-				add(new JCheckBox("Private Message"));
+				add(channelCommand = new JCheckBox("Channel Message"));
+				add(PMCommand = new JCheckBox("Private Message"));
 			}
 		});
 		checkBoxGroups.put("Random Messages", new LinkedHashSet<JCheckBox>() {
 			{
-				add(new JCheckBox("Channel Message"));
-				add(new JCheckBox("Channel Notice"));
-				add(new JCheckBox("Channel Action"));
-				add(new JCheckBox("Private Message"));
-				add(new JCheckBox("Private Action"));
+				add(channelMessage = new JCheckBox("Channel Message"));
+				add(channelNotice = new JCheckBox("Channel Notice"));
+				add(channelAction = new JCheckBox("Channel Action"));
+				add(PMMessage = new JCheckBox("Private Message"));
+				add(PMAction = new JCheckBox("Private Action"));
 			}
 		});
 		checkBoxGroups.put("Operator Actions", new LinkedHashSet<JCheckBox>() {
 			{
-				add(new JCheckBox("Operator-Deoperator (self)"));
-				add(new JCheckBox("Voice-Devoice (self)"));
-				add(new JCheckBox("Kick-Join (self)"));
-				add(new JCheckBox("Ban-Unban (self)"));
+				add(operatorOp = new JCheckBox("Operator-Deoperator (self)"));
+				add(operatorVoice = new JCheckBox("Voice-Devoice (self)"));
+				add(operatorKick = new JCheckBox("Kick-Join (self)"));
+				add(operatorBan = new JCheckBox("Ban-Unban (self)"));
 			}
 		});
 		checkBoxGroups.put("User Status", new LinkedHashSet<JCheckBox>() {
 			{
-				add(new JCheckBox("Part-Join"));
-				add(new JCheckBox("Quit-Join"));
+				add(userPart = new JCheckBox("Part-Join"));
+				add(userQuit = new JCheckBox("Quit-Join"));
 			}
 		});
 
