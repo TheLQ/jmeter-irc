@@ -32,8 +32,23 @@ public class IrcBotSampler extends AbstractSampler {
 	
 	private static final Logger log = LoggingManager.getLoggerForClass();
 
-    // The name of the property used to hold our data
-    public final static String DATA = "ExampleSampler.data"; //$NON-NLS-1$
+	public static final String botPrefix = "IrcBotSampler.botPrefix";
+	public static final String channelPrefix = "IrcBotSampler.channelPrefix";
+	public static final String numChannels = "IrcBotSampler.numChannels";
+	public static final String command = "IrcBotSampler.command";
+	public static final String channelCommand = "IrcBotSampler.channelCommand";
+	public static final String PMCommand = "IrcBotSampler.PMCommand";
+	public static final String channelMessage = "IrcBotSampler.channelMessage";
+	public static final String channelAction = "IrcBotSampler.channelAction";
+	public static final String channelNotice = "IrcBotSampler.channelNotice";
+	public static final String PMMessage = "IrcBotSampler.PMMessage";
+	public static final String PMAction = "IrcBotSampler.PMAction";
+	public static final String operatorOp = "IrcBotSampler.operatorOp";
+	public static final String operatorVoice = "IrcBotSampler.operatorVoice";
+	public static final String operatorKick = "IrcBotSampler.operatorKick";
+	public static final String operatorBan = "IrcBotSampler.operatorBan";
+	public static final String userPart = "IrcBotSampler.userPart";
+	public static final String userQuit = "IrcBotSampler.userQuit";
 
     private static int classCount = 0; // keep track of classes created
 
