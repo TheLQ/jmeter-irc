@@ -3,6 +3,7 @@ package org.apache.jmeter.protocol.irc;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.awt.LayoutManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -53,10 +54,12 @@ public class IrcBotGui extends AbstractSamplerGui {
 	 * @return the panel for entering the data
 	 */
 	protected Component createBotInfoPanel() {
-		JPanel botInfoPanel = generatePanel(null, "Bot Information");
+		JPanel botInfoPanel = generatePanel(new GridLayout(2, 2), "Bot Information");
 
 		botInfoPanel.add(generateTextField(new JTextField("jmeterBot", 10), "Bot Prefix: "));
 		botInfoPanel.add(generateTextField(new JTextField("#jmeter", 10), "Channel Prefix: "));
+		botInfoPanel.add(generateTextField(new JTextField("1", 10), "Channels: "));
+		botInfoPanel.add(generateTextField(new JTextField("?jmeter", 10), "Command: "));
 
 		return botInfoPanel;
 	}
