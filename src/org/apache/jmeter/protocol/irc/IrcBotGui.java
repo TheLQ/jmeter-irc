@@ -53,7 +53,7 @@ public class IrcBotGui extends AbstractSamplerGui {
 	 *
 	 * @return the panel for entering the data
 	 */
-	private Component createBotInfoPanel() {
+	protected Component createBotInfoPanel() {
 		JPanel botInfoPanel = generatePanel(null, "Bot Information");
 		botInfoPanel.setLayout(new BoxLayout(botInfoPanel, BoxLayout.PAGE_AXIS));
 
