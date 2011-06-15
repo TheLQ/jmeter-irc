@@ -55,7 +55,7 @@ public class IrcServer {
 		while (true) {
 			System.out.println("Waiting for clients");
 			final Client curClient = new Client(server.accept());
-			System.out.println("New client connection accepted");
+			curClient.log("New client connection accepted");
 			clients.add(curClient);
 			//Handle client input in new thread
 			new Thread() {
@@ -97,10 +97,13 @@ public class IrcServer {
 
 			client.log("Awaiting input from user");
 			//Read input from user
-			while ((inputLine = client.getIn().readLine()) != null)
+			while ((inputLine = client.getIn().readLine()) != null) {
+				if (inputLine.toUpperCase().trim().startsWith("JOIN "))
+					sendToClients(":" + client.getInitNick() + "!~client@clients.jmeter JOIN :" + inputLine.split(" ", 2)[1]);
 				//Dispatch to listeners
 				for (IrcBotSampler listener : listeners)
 					listener.acceptLine(inputLine);
+			}
 
 			//Client has disconnected, forget about
 			forgetClient(client);
@@ -155,7 +158,7 @@ public class IrcServer {
 		}
 
 		public void log(String line) {
-			System.out.println(clientNum + ": ");
+			System.out.println(clientNum + ": " + line);
 		}
 	}
 
