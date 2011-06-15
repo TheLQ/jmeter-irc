@@ -141,6 +141,10 @@ public class IrcServer {
 	public int getPort() {
 		return port;
 	}
+	
+	public Set<IrcBotSampler> getListeners() {
+		return listeners;
+	}
 
 	@Data
 	protected static class Client {

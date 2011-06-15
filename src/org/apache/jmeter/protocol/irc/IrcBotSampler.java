@@ -127,6 +127,8 @@ public class IrcBotSampler extends AbstractSampler {
 		try {
 			init();
 			trace("sample()");
+			
+			server.getListeners().add(this);
 
 			//Reset last item if nessesary
 			if (lastItem >= responseItems.size())
@@ -179,8 +181,10 @@ public class IrcBotSampler extends AbstractSampler {
 	}
 
 	public void acceptLine(String line) {
-		if (line.contains(waitFor))
+		if (line.contains(waitFor) || line.contains(getPropertyAsString(botPrefix) + botNumber + " ")) {
+			response = line;
 			waitLatch.countDown();
+		}
 	}
 
 	protected Set<String> generateSet(String... responses) {
