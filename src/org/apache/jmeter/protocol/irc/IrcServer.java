@@ -25,6 +25,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -39,10 +40,11 @@ public class IrcServer {
 	protected ServerSocket server;
 	protected Set<Client> clients = Collections.synchronizedSet(new HashSet());
 	protected Set<IrcBotSampler> listeners = Collections.synchronizedSet(new HashSet());
-	
+	protected final String serverAddress = "irc.jmeter";
+
 	public IrcServer() {
 	}
-	
+
 	public void init() throws IOException {
 		server = new ServerSocket(port);
 		while (true) {
@@ -57,38 +59,62 @@ public class IrcServer {
 			};
 		}
 	}
-	
+
 	public void handleClientInput(Client client) {
 		try {
 			String inputLine = "";
+			try {
+				//Temporarily set timeout to 5 seconds
+				client.getSocket().setSoTimeout(5000);
+				//Wait for initial NICK line
+				while ((inputLine = client.getIn().readLine()) != null)
+					if (inputLine.toUpperCase().trim().startsWith("NICK "))
+						client.setInitNick(inputLine.split(" ", 2)[1]);
+			} catch (SocketTimeoutException e) {
+				//Client hasn't responded, close the connection
+				forgetClient(client);
+			}
+
+			//Resume normal timeout
+			client.getSocket().setSoTimeout(0);
+
+			//Write line saying client has connected to this IRC server
+			client.getOut().write(":" + serverAddress + " 004 " + serverAddress + " jmeter-ircd-basic-0.1 ov b");
+
+			//Read input from user
 			while ((inputLine = client.getIn().readLine()) != null)
 				//Dispatch to listeners
 				for (IrcBotSampler listener : listeners)
 					listener.acceptLine(inputLine);
 
 			//Client has disconnected, forget about
-			client.getIn().close();
-			client.getOut().close();
-			clients.remove(client);
+			forgetClient(client);
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
 	}
-	
+
+	public void forgetClient(Client client) throws IOException {
+		client.getIn().close();
+		client.getOut().close();
+		clients.remove(client);
+	}
+
 	public void close() throws IOException {
 		//Close down all of the clients
-		for(Client curClient : clients) {
+		for (Client curClient : clients) {
 			curClient.getIn().close();
 			curClient.getOut().close();
 		}
 	}
-	
+
 	@Data
 	protected class Client {
 		protected Socket socket;
 		protected BufferedReader in;
 		protected BufferedWriter out;
-		
+		protected String initNick;
+
 		public Client(Socket socket) throws IOException {
 			this.socket = socket;
 			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
