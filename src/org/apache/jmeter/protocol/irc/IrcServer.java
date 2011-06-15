@@ -88,7 +88,8 @@ public class IrcServer {
 
 			System.out.println("Sending that client has connected");
 			//Write line saying client has connected to this IRC server
-			client.getOut().write(":" + serverAddress + " 004 " + serverAddress + " jmeter-ircd-basic-0.1 ov b");
+			client.getOut().write(":" + serverAddress + " 004 " + serverAddress + " jmeter-ircd-basic-0.1 ov b\r\n");
+			client.getOut().flush();
 
 			System.out.println("Awaiting input from user");
 			//Read input from user
