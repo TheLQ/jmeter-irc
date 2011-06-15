@@ -81,31 +81,31 @@ public class IrcBotSampler extends AbstractSampler {
 	public void init() {
 		//Setup possible response list
 		Map<String, Set<String>> responseMap = new HashMap();
-		if (!getPropertyAsBoolean(channelCommand))
+		if (getPropertyAsBoolean(channelCommand))
 			responseMap.put(channelCommand, generateSet("${thisHostmask} PRIVMSG ${channel} :${command} ${random}"));
-		if (!getPropertyAsBoolean(PMCommand))
+		if (getPropertyAsBoolean(PMCommand))
 			responseMap.put(PMCommand, generateSet("${thisHostmask} PRIVMSG ${targetNick} :${command} ${random}"));
-		if (!getPropertyAsBoolean(channelMessage))
+		if (getPropertyAsBoolean(channelMessage))
 			responseMap.put(channelMessage, generateSet("${thisHostmask} PRIVMSG ${channel} :${random}"));
-		if (!getPropertyAsBoolean(channelAction))
+		if (getPropertyAsBoolean(channelAction))
 			responseMap.put(channelAction, generateSet("${thisHostmask} PRIVMSG ${channel} :\u0001ACTION ${random}\u0001"));
-		if (!getPropertyAsBoolean(channelNotice))
+		if (getPropertyAsBoolean(channelNotice))
 			responseMap.put(channelNotice, generateSet("${thisHostmask} NOTICE ${channel} :${random}"));
-		if (!getPropertyAsBoolean(PMMessage))
+		if (getPropertyAsBoolean(PMMessage))
 			responseMap.put(PMMessage, generateSet("${thisHostmask} PRIVMSG ${targetNick} :${random}"));
-		if (!getPropertyAsBoolean(PMAction))
+		if (getPropertyAsBoolean(PMAction))
 			responseMap.put(PMAction, generateSet("${thisHostmask} PRIVMSG ${targetNick} :\u0001ACTION ${random}\u0001"));
-		if (!getPropertyAsBoolean(operatorOp))
+		if (getPropertyAsBoolean(operatorOp))
 			responseMap.put(operatorOp, generateSet("${thisHostmask} MODE ${channel} +o ${thisNick}", "${thisHostmask} MODE ${channel} -o ${thisNick}"));
-		if (!getPropertyAsBoolean(operatorVoice))
+		if (getPropertyAsBoolean(operatorVoice))
 			responseMap.put(operatorVoice, generateSet("${thisHostmask} MODE ${channel} +v ${thisNick}", "${thisHostmask} MODE ${channel} -v ${thisNick}"));
-		if (!getPropertyAsBoolean(operatorKick))
+		if (getPropertyAsBoolean(operatorKick))
 			responseMap.put(operatorKick, generateSet("${thisHostmask} KICK ${channel} ${targetNick}: ${random}", "${thisHostmask} JOIN :${channel}"));
-		if (!getPropertyAsBoolean(operatorBan))
+		if (getPropertyAsBoolean(operatorBan))
 			responseMap.put(operatorBan, generateSet("${thisHostmask} MODE ${channel} +b ${thisNick}!*@*", "${thisHostmask} MODE ${channel} -b ${thisNick}!*@*"));
-		if (!getPropertyAsBoolean(userPart))
+		if (getPropertyAsBoolean(userPart))
 			responseMap.put(userPart, generateSet("${thisHostmask} PART ${channel} :${random}", "${thisHostmask} JOIN :${channel}"));
-		if (!getPropertyAsBoolean(userQuit))
+		if (getPropertyAsBoolean(userQuit))
 			responseMap.put(userQuit, generateSet("${thisHostmask} QUIT :${random}", "${thisHostmask} JOIN :${channel}"));
 
 		//Randomly shuffle responses and compact response to a single response queue
