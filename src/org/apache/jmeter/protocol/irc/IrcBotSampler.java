@@ -67,14 +67,8 @@ public class IrcBotSampler extends AbstractSampler {
 		classCount++;
 		trace("ExampleSampler()");
 	}
-
-	@Override
-	public SampleResult sample(Entry e) {
-		trace("sample()");
-		SampleResult res = new SampleResult();
-		res.setSuccessful(false); // Assume failure
-		res.setSampleLabel(getName());
-
+	
+	public void init() {
 		//Setup possible response list
 		Map<String, Set<String>> responses = new HashMap();
 		if (!getPropertyAsBoolean(channelCommand))
@@ -111,6 +105,16 @@ public class IrcBotSampler extends AbstractSampler {
 		for (String curKey : randomKeys)
 			newResponses.put(curKey, responses.get(curKey));
 		responses = newResponses;
+	}
+
+	@Override
+	public SampleResult sample(Entry e) {
+		trace("sample()");
+		SampleResult res = new SampleResult();
+		res.setSuccessful(false); // Assume failure
+		res.setSampleLabel(getName());
+
+		
 
 		/*
 		 * Perform the sampling
