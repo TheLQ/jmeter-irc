@@ -53,6 +53,7 @@ public class IrcBotGui extends AbstractSamplerGui {
 	protected JTextField channelPrefix;
 	protected JTextField numChannels;
 	protected JTextField command;
+	protected JTextField targetNick;
 	protected JCheckBox channelCommand;
 	protected JCheckBox PMCommand;
 	protected JCheckBox channelMessage;
@@ -98,12 +99,13 @@ public class IrcBotGui extends AbstractSamplerGui {
 	 * @return the panel for entering the data
 	 */
 	protected Component createBotInfoPanel() {
-		JPanel botInfoPanel = generatePanel(new GridLayout(2, 2), "Bot Information");
+		JPanel botInfoPanel = generatePanel(new GridLayout(2, 3), "Bot Information");
 
 		botInfoPanel.add(generateTextField(botPrefix = new JTextField("jmeterBot", 10), "Bot Prefix: "));
 		botInfoPanel.add(generateTextField(channelPrefix = new JTextField("#jmeter", 10), "Channel Prefix: "));
 		botInfoPanel.add(generateTextField(numChannels = new JTextField("1", 10), "Channels: "));
 		botInfoPanel.add(generateTextField(command = new JTextField("?jmeter", 10), "Command: "));
+		botInfoPanel.add(generateTextField(targetNick = new JTextField("", 10), "Target Nick: "));
 
 		return botInfoPanel;
 	}
