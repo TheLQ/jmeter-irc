@@ -98,6 +98,7 @@ public class IrcServer {
 			client.log("Awaiting input from user");
 			//Read input from user
 			while ((inputLine = client.getIn().readLine()) != null) {
+				client.log("Recieved line from client - " + inputLine);
 				if (inputLine.toUpperCase().trim().startsWith("JOIN "))
 					sendToClients(":" + client.getInitNick() + "!~client@clients.jmeter JOIN :" + inputLine.split(" ", 2)[1]);
 				//Dispatch to listeners
@@ -130,6 +131,7 @@ public class IrcServer {
 	}
 
 	public synchronized void sendToClients(String line) throws IOException {
+		System.out.println("Sending line to clients - " + line);
 		for (Client curClient : clients) {
 			curClient.getOut().write(line + "\r\n");
 			curClient.getOut().flush();
