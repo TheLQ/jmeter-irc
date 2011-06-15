@@ -181,7 +181,8 @@ public class IrcBotSampler extends AbstractSampler {
 	}
 
 	public void acceptLine(String line) {
-		if (line.contains(waitFor) || line.contains(getPropertyAsString(botPrefix) + botNumber + " ")) {
+		String name = getPropertyAsString(botPrefix) + botNumber;
+		if (line.contains(waitFor) || line.contains(name + " ") || line.trim().endsWith(name)) {
 			response = line;
 			waitLatch.countDown();
 		}
