@@ -59,7 +59,7 @@ public class IrcServer {
 				public void run() {
 					handleClientInput(curClient);
 				}
-			};
+			}.start();
 		}
 	}
 
