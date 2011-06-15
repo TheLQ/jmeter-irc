@@ -96,9 +96,9 @@ public class IrcBotSampler extends AbstractSampler {
 		if (getPropertyAsBoolean(PMAction))
 			responseMap.put(PMAction, generateSet(":${thisHostmask} PRIVMSG ${targetNick} :\u0001ACTION ${random}\u0001"));
 		if (getPropertyAsBoolean(operatorOp))
-			responseMap.put(operatorOp, generateSet(":${thisHostmask} MODE ${channel} +o ${thisNick}", "${thisHostmask} MODE ${channel} -o ${thisNick}"));
+			responseMap.put(operatorOp, generateSet(":${thisHostmask} MODE ${channel} +o ${thisNick}", ":${thisHostmask} MODE ${channel} -o ${thisNick}"));
 		if (getPropertyAsBoolean(operatorVoice))
-			responseMap.put(operatorVoice, generateSet(":${thisHostmask} MODE ${channel} +v ${thisNick}", "${thisHostmask} MODE ${channel} -v ${thisNick}"));
+			responseMap.put(operatorVoice, generateSet(":${thisHostmask} MODE ${channel} +v ${thisNick}", ":${thisHostmask} MODE ${channel} -v ${thisNick}"));
 		if (getPropertyAsBoolean(operatorKick))
 			responseMap.put(operatorKick, generateSet(":${thisHostmask} KICK ${channel} ${targetNick}: ${random}", ":${thisHostmask} JOIN :${channel}"));
 		if (getPropertyAsBoolean(operatorBan))
