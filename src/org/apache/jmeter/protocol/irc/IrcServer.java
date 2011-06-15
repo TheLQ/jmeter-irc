@@ -82,6 +82,7 @@ public class IrcServer {
 					}
 			} catch (SocketTimeoutException e) {
 				//Client hasn't responded, close the connection
+				client.log("Timed out sending Join. Disconnecting...");
 				forgetClient(client);
 			}
 
@@ -107,13 +108,16 @@ public class IrcServer {
 			}
 
 			//Client has disconnected, forget about
+			client.log("Client has disconnected, ending");
 			forgetClient(client);
 		} catch (IOException ex) {
+			client.log("Exception in client");
 			ex.printStackTrace();
 		}
 	}
 
 	public void forgetClient(Client client) throws IOException {
+		client.log("Forgetting about client ");
 		client.getIn().close();
 		client.getOut().close();
 		clients.remove(client);
@@ -141,7 +145,7 @@ public class IrcServer {
 	public int getPort() {
 		return port;
 	}
-	
+
 	public Set<IrcBotSampler> getListeners() {
 		return listeners;
 	}
