@@ -62,13 +62,13 @@ public class IrcBotSampler extends AbstractSampler {
 	public static final String userQuit = "IrcBotSampler.userQuit";
 	private static int classCount = 0; // keep track of classes created
 	protected IrcServer server;
-	
+
 	public IrcBotSampler(IrcServer server) {
 		this.server = server;
 		classCount++;
 		trace("ExampleSampler()");
 	}
-	
+
 	@Override
 	public SampleResult sample(Entry e) {
 		trace("sample()");
@@ -76,8 +76,34 @@ public class IrcBotSampler extends AbstractSampler {
 		res.setSuccessful(false); // Assume failure
 		res.setSampleLabel(getName());
 
-		String response = null;
-
+		//Setup possible response list
+		Map<String, Set<String>> map = new HashMap();
+		if (!getPropertyAsBoolean(channelCommand))
+			map.put(channelCommand, generateSet("${thisHostmask} PRIVMSG ${channel} :${command} ${random}"));
+		if (!getPropertyAsBoolean(PMCommand))
+			map.put(PMCommand, generateSet("${thisHostmask} PRIVMSG ${targetNick} :${command} ${random}"));
+		if (!getPropertyAsBoolean(channelMessage))
+			map.put(channelMessage, generateSet("${thisHostmask} PRIVMSG ${channel} :${random}"));
+		if (!getPropertyAsBoolean(channelAction))
+			map.put(channelAction, generateSet("${thisHostmask} PRIVMSG ${channel} :\u0001ACTION ${random}\u0001"));
+		if (!getPropertyAsBoolean(channelNotice))
+			map.put(channelNotice, generateSet("${thisHostmask} NOTICE ${channel} :${random}"));
+		if (!getPropertyAsBoolean(PMMessage))
+			map.put(PMMessage, generateSet("${thisHostmask} PRIVMSG ${targetNick} :${random}"));
+		if (!getPropertyAsBoolean(PMAction))
+			map.put(PMAction, generateSet("${thisHostmask} PRIVMSG ${targetNick} :\u0001ACTION ${random}\u0001"));
+		if (!getPropertyAsBoolean(operatorOp))
+			map.put(operatorOp, generateSet("${thisHostmask} MODE ${channel} +o ${thisNick}", "${thisHostmask} MODE ${channel} -o ${thisNick}"));
+		if (!getPropertyAsBoolean(operatorVoice))
+			map.put(operatorVoice, generateSet("${thisHostmask} MODE ${channel} +v ${thisNick}", "${thisHostmask} MODE ${channel} -v ${thisNick}"));
+		if (!getPropertyAsBoolean(operatorKick))
+			map.put(operatorKick, generateSet("${thisHostmask} KICK ${channel} ${targetNick}: ${random}", "${thisHostmask} JOIN :${channel}"));
+		if (!getPropertyAsBoolean(operatorBan))
+			map.put(operatorBan, generateSet("${thisHostmask} MODE ${channel} +b ${targetNick}!*@*", "${thisHostmask} MODE ${channel} -b ${targetNick}!*@*"));
+		if (!getPropertyAsBoolean(userPart))
+			map.put(userPart, generateSet("${thisHostmask} PART ${channel} :${random}", "${thisHostmask} JOIN :${channel}"));
+		if (!getPropertyAsBoolean(userQuit))
+			map.put(userQuit, generateSet("${thisHostmask} QUIT :${random}", "${thisHostmask} JOIN :${channel}"));
 
 		/*
 		 * Perform the sampling
@@ -109,27 +135,8 @@ public class IrcBotSampler extends AbstractSampler {
 
 		return res;
 	}
-	
+
 	public void acceptLine(String line) {
-		
-	}
-
-	public void generateResponses() {
-		Map<String, Set<String>> map = new HashMap();
-
-		map.put(channelCommand, generateSet("${thisHostmask} PRIVMSG ${channel} :${command} ${random}"));
-		map.put(PMCommand, generateSet("${thisHostmask} PRIVMSG ${targetNick} :${command} ${random}"));
-		map.put(channelMessage, generateSet("${thisHostmask} PRIVMSG ${channel} :${random}"));
-		map.put(channelAction, generateSet("${thisHostmask} PRIVMSG ${channel} :\u0001ACTION ${random}\u0001"));
-		map.put(channelNotice, generateSet("${thisHostmask} NOTICE ${channel} :${random}"));
-		map.put(PMMessage, generateSet("${thisHostmask} PRIVMSG ${targetNick} :${random}"));
-		map.put(PMAction, generateSet("${thisHostmask} PRIVMSG ${targetNick} :\u0001ACTION ${random}\u0001"));
-		map.put(operatorOp, generateSet("${thisHostmask} MODE ${channel} +o ${thisNick}", "${thisHostmask} MODE ${channel} -o ${thisNick}"));
-		map.put(operatorVoice, generateSet("${thisHostmask} MODE ${channel} +v ${thisNick}", "${thisHostmask} MODE ${channel} -v ${thisNick}"));
-		map.put(operatorKick, generateSet("${thisHostmask} KICK ${channel} ${targetNick}: ${random}", "${thisHostmask} JOIN :${channel}"));
-		map.put(operatorBan, generateSet("${thisHostmask} MODE ${channel} +b ${targetNick}!*@*", "${thisHostmask} MODE ${channel} -b ${targetNick}!*@*"));
-		map.put(userPart, generateSet("${thisHostmask} PART ${channel} :${random}", "${thisHostmask} JOIN :${channel}"));
-		map.put(userQuit, generateSet("${thisHostmask} QUIT :${random}", "${thisHostmask} JOIN :${channel}"));
 	}
 
 	protected Set<String> generateSet(String... responses) {
@@ -137,7 +144,7 @@ public class IrcBotSampler extends AbstractSampler {
 		responseSet.addAll(Arrays.asList(responses));
 		return responseSet;
 	}
-	
+
 	protected String randomResponse() {
 		return UUID.randomUUID().toString();
 	}
