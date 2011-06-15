@@ -28,14 +28,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -44,6 +41,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EtchedBorder;
 import org.apache.jmeter.gui.util.HorizontalPanel;
 import org.apache.jmeter.gui.util.VerticalPanel;
@@ -76,6 +74,8 @@ public class IrcBotGui extends AbstractSamplerGui {
 	protected JCheckBox userPart;
 	protected JCheckBox userQuit;
 	protected IrcServer server;
+	JLabel statusLabel;
+	JButton startStopButton;
 
 	public IrcBotGui() {
 		// Standard setup
@@ -96,29 +96,30 @@ public class IrcBotGui extends AbstractSamplerGui {
 
 		HorizontalPanel panel = new HorizontalPanel();
 
-		final JLabel statusLabel = new JLabel("Status: Stopped");
+		statusLabel = new JLabel("Status: Stopped");
 		panel.add(statusLabel);
 
-		final JButton startStopButton = new JButton("Start");
+		startStopButton = new JButton("Start");
 		panel.add(startStopButton);
 		startStopButton.setActionCommand("StartStopButton");
 		startStopButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				try {
-					if (e.getActionCommand().equals("StartStopButton"))
-						if (startStopButton.getText().equals("Start")) {
-							restartServer(Integer.parseInt(port.getText()));
-							startStopButton.setText("Stop");
-						} else if (startStopButton.getText().equals("Stop")) {
-							restartServer(Integer.parseInt(port.getText()));
+				if (e.getActionCommand().equals("StartStopButton"))
+					if (startStopButton.getText().equals("Start"))
+						restartServer(Integer.parseInt(port.getText()));
+					else if (startStopButton.getText().equals("Stop"))
+						try {
+							server.close();
 							startStopButton.setText("Start");
+							statusLabel.setText("Status: Stopped");
+							statusLabel.setForeground(Color.black);
+						} catch (IOException ex) {
+							statusLabel.setText("Status: Error");
+							statusLabel.setForeground(Color.red);
+							statusLabel.setToolTipText(ex.getClass().getCanonicalName() + ": " + ex.getMessage());
+							ex.printStackTrace();
 						}
-				} catch (Exception ex) {
-					statusLabel.setText("Status: Error");
-					statusLabel.setForeground(Color.red);
-				}
-
 			}
 		});
 
@@ -127,15 +128,10 @@ public class IrcBotGui extends AbstractSamplerGui {
 		port.addFocusListener(new FocusAdapter() {
 			@Override
 			public void focusLost(FocusEvent e) {
-				try {
-					int portValue = Integer.parseInt(port.getText());
-					if (e.getComponent() == port && server.getPort() != portValue)
-						//Recreate server with new port
-						restartServer(portValue);
-				} catch (Exception ex) {
-					statusLabel.setText("Status: Error");
-					statusLabel.setForeground(Color.red);
-				}
+				int portValue = Integer.parseInt(port.getText());
+				if (e.getComponent() == port && server.getPort() != portValue)
+					//Recreate server with new port
+					restartServer(portValue);
 			}
 		});
 
@@ -143,11 +139,35 @@ public class IrcBotGui extends AbstractSamplerGui {
 		return ircServer;
 	}
 
-	protected IrcServer restartServer(int portValue) throws IOException {
-		if (server != null)
-			server.close();
-		server = new IrcServer(portValue);
-		return server;
+	protected void restartServer(final int portValue) {
+		new Thread() {
+			@Override
+			public void run() {
+				try {
+					if (server != null)
+						server.close();
+					server = new IrcServer(portValue);
+					server.init();
+				} catch (final IOException ex) {
+					if (!server.isClosedGood())
+						SwingUtilities.invokeLater(new Runnable() {
+							@Override
+							public void run() {
+								statusLabel.setText("Status: Error");
+								statusLabel.setForeground(Color.red);
+								statusLabel.setToolTipText(ex.getClass().getCanonicalName() + ": " + ex.getMessage());
+								ex.printStackTrace();
+							}
+						});
+				}
+			}
+		}.start();
+		System.out.println("Setting values to started mode");
+		statusLabel.setToolTipText("");
+		startStopButton.setText("Stop");
+		statusLabel.setText("Status: Started on port " + portValue);
+		statusLabel.setForeground(new Color(0x00, 0xC0, 0x00));
+		startStopButton.repaint();
 	}
 
 	/*
@@ -285,6 +305,24 @@ public class IrcBotGui extends AbstractSamplerGui {
 	public void modifyTestElement(TestElement te) {
 		te.clear();
 		configureTestElement(te);
+		te.setProperty(IrcBotSampler.botPrefix, botPrefix.getText());
+		te.setProperty(IrcBotSampler.channelPrefix, channelPrefix.getText());
+		te.setProperty(IrcBotSampler.numChannels, numChannels.getText());
+		te.setProperty(IrcBotSampler.command, command.getText());
+		te.setProperty(IrcBotSampler.targetNick, targetNick.getText());
+		te.setProperty(IrcBotSampler.channelCommand, channelCommand.isSelected());
+		te.setProperty(IrcBotSampler.PMCommand, PMCommand.isSelected());
+		te.setProperty(IrcBotSampler.channelMessage, channelMessage.isSelected());
+		te.setProperty(IrcBotSampler.channelAction, channelAction.isSelected());
+		te.setProperty(IrcBotSampler.channelNotice, channelNotice.isSelected());
+		te.setProperty(IrcBotSampler.PMMessage, PMMessage.isSelected());
+		te.setProperty(IrcBotSampler.PMAction, PMAction.isSelected());
+		te.setProperty(IrcBotSampler.operatorOp, operatorOp.isSelected());
+		te.setProperty(IrcBotSampler.operatorVoice, operatorVoice.isSelected());
+		te.setProperty(IrcBotSampler.operatorKick, operatorKick.isSelected());
+		te.setProperty(IrcBotSampler.operatorBan, operatorBan.isSelected());
+		te.setProperty(IrcBotSampler.userPart, userPart.isSelected());
+		te.setProperty(IrcBotSampler.userQuit, userQuit.isSelected());
 	}
 
 	public static void main(String[] args) {

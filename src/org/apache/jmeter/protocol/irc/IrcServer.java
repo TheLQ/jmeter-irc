@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.Data;
+import lombok.Getter;
 
 /**
  *
@@ -41,6 +42,8 @@ public class IrcServer {
 	protected Set<Client> clients = Collections.synchronizedSet(new HashSet());
 	protected Set<IrcBotSampler> listeners = Collections.synchronizedSet(new HashSet());
 	protected final String serverAddress = "irc.jmeter";
+	@Getter
+	protected boolean closedGood = false;
 
 	public IrcServer(int port) {
 		this.port = port;
@@ -81,7 +84,7 @@ public class IrcServer {
 				//Client hasn't responded, close the connection
 				forgetClient(client);
 			}
-			
+
 			System.out.println("Nick recieved, continuing");
 
 			//Resume normal timeout
@@ -113,21 +116,23 @@ public class IrcServer {
 	}
 
 	public void close() throws IOException {
+		closedGood = true;
 		//Close down all of the clients
 		for (Client curClient : clients) {
 			curClient.getIn().close();
 			curClient.getOut().close();
 		}
-		server.close();
+		if (server.isBound())
+			server.close();
 	}
-	
+
 	public synchronized void sendToClients(String line) throws IOException {
 		for (Client curClient : clients) {
 			curClient.getOut().write(line + "\r\n");
 			curClient.getOut().flush();
 		}
 	}
-	
+
 	public int getPort() {
 		return port;
 	}
@@ -145,7 +150,7 @@ public class IrcServer {
 			out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 		}
 	}
-	
+
 	public static void main(String[] args) throws IOException {
 		IrcServer server = new IrcServer(6667);
 		server.init();
