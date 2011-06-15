@@ -73,7 +73,14 @@ public class IrcServer {
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
-		
+	}
+	
+	public void close() throws IOException {
+		//Close down all of the clients
+		for(Client curClient : clients) {
+			curClient.getIn().close();
+			curClient.getOut().close();
+		}
 	}
 	
 	@Data
