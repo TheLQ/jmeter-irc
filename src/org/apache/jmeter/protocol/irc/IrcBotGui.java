@@ -54,6 +54,8 @@ public class IrcBotGui extends AbstractSamplerGui {
 	protected JTextField numChannels;
 	protected JTextField command;
 	protected JTextField targetNick;
+	protected JTextField server;
+	protected JTextField port;
 	protected JCheckBox channelCommand;
 	protected JCheckBox PMCommand;
 	protected JCheckBox channelMessage;
@@ -86,8 +88,8 @@ public class IrcBotGui extends AbstractSamplerGui {
 		JPanel ircServer = generatePanel(new BorderLayout(), "IRC Server");
 
 		HorizontalPanel panel = new HorizontalPanel();
-		panel.add(generateTextField(new JTextField(15), JMeterUtils.getResString("web_server_domain")));
-		panel.add(generateTextField(new JTextField(6), JMeterUtils.getResString("web_server_port")));
+		panel.add(generateTextField(server = new JTextField(15), JMeterUtils.getResString("web_server_domain")));
+		panel.add(generateTextField(port = new JTextField(6), JMeterUtils.getResString("web_server_port")));
 
 		ircServer.add(panel);
 		return ircServer;
