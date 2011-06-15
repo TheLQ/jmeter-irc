@@ -72,8 +72,10 @@ public class IrcServer {
 				System.out.println("Waiting for initial Nick line");
 				//Wait for initial NICK line
 				while ((inputLine = client.getIn().readLine()) != null)
-					if (inputLine.toUpperCase().trim().startsWith("NICK "))
+					if (inputLine.toUpperCase().trim().startsWith("NICK ")) {
 						client.setInitNick(inputLine.split(" ", 2)[1]);
+						break;
+					}
 			} catch (SocketTimeoutException e) {
 				//Client hasn't responded, close the connection
 				forgetClient(client);
