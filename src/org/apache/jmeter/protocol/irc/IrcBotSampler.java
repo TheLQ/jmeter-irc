@@ -127,7 +127,7 @@ public class IrcBotSampler extends AbstractSampler {
 		try {
 			init();
 			trace("sample()");
-			
+
 			server.getListeners().add(this);
 
 			//Reset last item if nessesary
@@ -168,7 +168,7 @@ public class IrcBotSampler extends AbstractSampler {
 			res.setDataType(SampleResult.TEXT);
 
 			res.setResponseCodeOK();
-			res.setResponseMessage("OK");
+			res.setSuccessful(true);
 		} catch (Exception ex) {
 			log.debug("", ex);
 			res.setResponseCode("500");
