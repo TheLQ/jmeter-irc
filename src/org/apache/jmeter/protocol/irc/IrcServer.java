@@ -118,6 +118,13 @@ public class IrcServer {
 			curClient.getOut().close();
 		}
 	}
+	
+	public synchronized void sendToClients(String line) throws IOException {
+		for (Client curClient : clients) {
+			curClient.getOut().write(line + "\r\n");
+			curClient.getOut().flush();
+		}
+	}
 
 	@Data
 	protected class Client {
