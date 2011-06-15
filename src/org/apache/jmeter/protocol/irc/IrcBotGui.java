@@ -73,7 +73,7 @@ public class IrcBotGui extends AbstractSamplerGui {
 	protected JCheckBox operatorBan;
 	protected JCheckBox userPart;
 	protected JCheckBox userQuit;
-	protected IrcServer server;
+	protected static IrcServer server;
 	JLabel statusLabel;
 	JButton startStopButton;
 
@@ -296,7 +296,7 @@ public class IrcBotGui extends AbstractSamplerGui {
 
 	@Override
 	public TestElement createTestElement() {
-		IrcBotSampler sampler = new IrcBotSampler(server);
+		IrcBotSampler sampler = new IrcBotSampler();
 		modifyTestElement(sampler);
 		return sampler;
 	}
@@ -323,6 +323,10 @@ public class IrcBotGui extends AbstractSamplerGui {
 		te.setProperty(IrcBotSampler.operatorBan, operatorBan.isSelected());
 		te.setProperty(IrcBotSampler.userPart, userPart.isSelected());
 		te.setProperty(IrcBotSampler.userQuit, userQuit.isSelected());
+	}
+	
+	static IrcServer getServer() {
+		return server;
 	}
 
 	public static void main(String[] args) {

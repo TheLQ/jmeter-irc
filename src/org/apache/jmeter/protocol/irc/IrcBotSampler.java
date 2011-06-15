@@ -72,8 +72,8 @@ public class IrcBotSampler extends AbstractSampler {
 	LinkedList<String> responseItems;
 	LinkedList<String> responseTypes;
 
-	public IrcBotSampler(IrcServer server) {
-		this.server = server;
+	public IrcBotSampler() {
+		this.server = IrcBotGui.getServer();
 		botNumber = classCount++;
 		trace("ExampleSampler()");
 	}
