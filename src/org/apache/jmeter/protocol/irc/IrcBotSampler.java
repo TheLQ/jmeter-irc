@@ -26,8 +26,10 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 import org.apache.jmeter.samplers.AbstractSampler;
 import org.apache.jmeter.samplers.Entry;
 import org.apache.jmeter.samplers.SampleResult;
@@ -58,14 +60,21 @@ public class IrcBotSampler extends AbstractSampler {
 	public static final String operatorBan = "IrcBotSampler.operatorBan";
 	public static final String userPart = "IrcBotSampler.userPart";
 	public static final String userQuit = "IrcBotSampler.userQuit";
+	
 	private static int classCount = 0; // keep track of classes created
 	protected IrcServer server;
+	protected int botNumber;
+	protected int lastItem = 0;
+	protected static Random channelRandom = new Random();
+	protected String waitFor;
+	protected CountDownLatch waitLatch;
+	protected String response;
 	LinkedList<String> responseItems;
 	LinkedList<String> responseTypes;
 
 	public IrcBotSampler(IrcServer server) {
 		this.server = server;
-		classCount++;
+		botNumber = classCount++;
 		trace("ExampleSampler()");
 	}
 
@@ -116,50 +125,62 @@ public class IrcBotSampler extends AbstractSampler {
 		res.setSuccessful(false); // Assume failure
 		res.setSampleLabel(getName());
 
+		//Reset last item if nessesary
+		if(lastItem >= responseItems.size())
+			lastItem = -1;
 		
-
+		//Get next item in the list
+		String lineItem = responseItems.get(lastItem + 1); 
+		String lineType = responseTypes.get(lastItem + 1);
+		lastItem++;
+		
+		waitFor = UUID.randomUUID().toString();
+		waitLatch = new CountDownLatch(1); 
+		response = null;
+		
+		//Build the line to send
+		String line = lineItem;
+		line = line.replace("${thisHostmask}", getPropertyAsString(botPrefix) + botNumber);
+		line = line.replace("${channel}", getPropertyAsString(channelPrefix) + channelRandom.nextInt(getPropertyAsInt(numChannels) + 1));
+		line = line.replace("${targetNick}", getPropertyAsString(targetNick));
+		line = line.replace("${random}", waitFor);
+		line = line.replace("${command}", getPropertyAsString(command));
+		
 		/*
 		 * Perform the sampling
 		 */
 		res.sampleStart(); // Start timing
 		try {
-
-
-			response = Thread.currentThread().getName();
-
+			server.sendToClients(line);
+			waitLatch.await();
+			
 			/*
 			 * Set up the sample result details
 			 */
-			res.setSamplerData(data);
+			res.setSamplerData(line);
 			res.setResponseData(response, null);
 			res.setDataType(SampleResult.TEXT);
 
 			res.setResponseCodeOK();
 			res.setResponseMessage("OK");
-			isOK = true;
 		} catch (Exception ex) {
 			log.debug("", ex);
 			res.setResponseCode("500");
 			res.setResponseMessage(ex.toString());
 		}
 		res.sampleEnd(); // End timimg
-
-		res.setSuccessful(isOK);
-
 		return res;
 	}
 
 	public void acceptLine(String line) {
+		if(line.contains(waitFor))
+			waitLatch.countDown();
 	}
 
 	protected Set<String> generateSet(String... responses) {
 		Set<String> responseSet = new HashSet();
 		responseSet.addAll(Arrays.asList(responses));
 		return responseSet;
-	}
-
-	protected String randomResponse() {
-		return UUID.randomUUID().toString();
 	}
 
 	/*
