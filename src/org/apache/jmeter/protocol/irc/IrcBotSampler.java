@@ -18,6 +18,12 @@
  */
 package org.apache.jmeter.protocol.irc;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import org.apache.jmeter.samplers.AbstractSampler;
 import org.apache.jmeter.samplers.Entry;
 import org.apache.jmeter.samplers.SampleResult;
@@ -29,13 +35,12 @@ import org.apache.log.Logger;
  * @author lordquackstar
  */
 public class IrcBotSampler extends AbstractSampler {
-	
 	private static final Logger log = LoggingManager.getLoggerForClass();
-
 	public static final String botPrefix = "IrcBotSampler.botPrefix";
 	public static final String channelPrefix = "IrcBotSampler.channelPrefix";
 	public static final String numChannels = "IrcBotSampler.numChannels";
 	public static final String command = "IrcBotSampler.command";
+	public static final String targetNick = "IrcBotSampler.targetNick";
 	public static final String channelCommand = "IrcBotSampler.channelCommand";
 	public static final String PMCommand = "IrcBotSampler.PMCommand";
 	public static final String channelMessage = "IrcBotSampler.channelMessage";
@@ -49,80 +54,89 @@ public class IrcBotSampler extends AbstractSampler {
 	public static final String operatorBan = "IrcBotSampler.operatorBan";
 	public static final String userPart = "IrcBotSampler.userPart";
 	public static final String userQuit = "IrcBotSampler.userQuit";
+	private static int classCount = 0; // keep track of classes created
 
-    private static int classCount = 0; // keep track of classes created
+	public IrcBotSampler() {
+		classCount++;
+		trace("ExampleSampler()");
+	}
 
-    // (for instructional purposes only!)
+	@Override
+	public SampleResult sample(Entry e) {
+		trace("sample()");
+		SampleResult res = new SampleResult();
+		res.setSuccessful(false); // Assume failure
+		res.setSampleLabel(getName());
 
-    public IrcBotSampler() {
-        classCount++;
-        trace("ExampleSampler()");
-    }
+		String response = null;
 
-    /**
-     * {@inheritDoc}
-     */
-    public SampleResult sample(Entry e) {
-        trace("sample()");
-        SampleResult res = new SampleResult();
-        boolean isOK = false; // Did sample succeed?
-        String data = getData(); // Sampler data
-        String response = null;
 
-        res.setSampleLabel(getTitle());
-        /*
-         * Perform the sampling
-         */
-        res.sampleStart(); // Start timing
-        try {
-			
+		/*
+		 * Perform the sampling
+		 */
+		res.sampleStart(); // Start timing
+		try {
 
-            response = Thread.currentThread().getName();
 
-            /*
-             * Set up the sample result details
-             */
-            res.setSamplerData(data);
-            res.setResponseData(response, null);
-            res.setDataType(SampleResult.TEXT);
+			response = Thread.currentThread().getName();
 
-            res.setResponseCodeOK();
-            res.setResponseMessage("OK");
-            isOK = true;
-        } catch (Exception ex) {
-            log.debug("", ex);
-            res.setResponseCode("500");
-            res.setResponseMessage(ex.toString());
-        }
-        res.sampleEnd(); // End timimg
+			/*
+			 * Set up the sample result details
+			 */
+			res.setSamplerData(data);
+			res.setResponseData(response, null);
+			res.setDataType(SampleResult.TEXT);
 
-        res.setSuccessful(isOK);
+			res.setResponseCodeOK();
+			res.setResponseMessage("OK");
+			isOK = true;
+		} catch (Exception ex) {
+			log.debug("", ex);
+			res.setResponseCode("500");
+			res.setResponseMessage(ex.toString());
+		}
+		res.sampleEnd(); // End timimg
 
-        return res;
-    }
+		res.setSuccessful(isOK);
 
-    /**
-     * @return a string for the sampleResult Title
-     */
-    private String getTitle() {
-        return this.getName();
-    }
+		return res;
+	}
 
-    /**
-     * @return the data for the sample
-     */
-    public String getData() {
-        return getPropertyAsString(DATA);
-    }
+	public void generateResponses() {
+		Map<String, Set<String>> map = new HashMap();
 
-    /*
-     * Helper method
-     */
-    private void trace(String s) {
-        String tl = getTitle();
-        String tn = Thread.currentThread().getName();
-        String th = this.toString();
-        log.debug(tn + " (" + classCount + ") " + tl + " " + s + " " + th);
-    }
+		map.put(channelCommand, generateSet("${thisHostmask} PRIVMSG ${channel} :${command} ${random}"));
+		map.put(PMCommand, generateSet("${thisHostmask} PRIVMSG ${targetNick} :${command} ${random}"));
+		map.put(channelMessage, generateSet("${thisHostmask} PRIVMSG ${channel} :${random}"));
+		map.put(channelAction, generateSet("${thisHostmask} PRIVMSG ${channel} :\u0001ACTION ${random}\u0001"));
+		map.put(channelNotice, generateSet("${thisHostmask} NOTICE ${channel} :${random}"));
+		map.put(PMMessage, generateSet("${thisHostmask} PRIVMSG ${targetNick} :${random}"));
+		map.put(PMAction, generateSet("${thisHostmask} PRIVMSG ${targetNick} :\u0001ACTION ${random}\u0001"));
+		map.put(operatorOp, generateSet("${thisHostmask} MODE ${channel} +o ${thisNick}", "${thisHostmask} MODE ${channel} -o ${thisNick}"));
+		map.put(operatorVoice, generateSet("${thisHostmask} MODE ${channel} +v ${thisNick}", "${thisHostmask} MODE ${channel} -v ${thisNick}"));
+		map.put(operatorKick, generateSet("${thisHostmask} KICK ${channel} ${targetNick}: ${random}", "${thisHostmask} JOIN :${channel}"));
+		map.put(operatorBan, generateSet("${thisHostmask} MODE ${channel} +b ${targetNick}!*@*", "${thisHostmask} MODE ${channel} -b ${targetNick}!*@*"));
+		map.put(userPart, generateSet("${thisHostmask} PART ${channel} :${random}", "${thisHostmask} JOIN :${channel}"));
+		map.put(userQuit, generateSet("${thisHostmask} QUIT :${random}", "${thisHostmask} JOIN :${channel}"));
+	}
+
+	protected Set<String> generateSet(String... responses) {
+		Set<String> responseSet = new HashSet();
+		responseSet.addAll(Arrays.asList(responses));
+		return responseSet;
+	}
 	
+	protected String randomResponse() {
+		return UUID.randomUUID().toString();
+	}
+
+	/*
+	 * Helper method
+	 */
+	private void trace(String s) {
+		String tl = getName();
+		String tn = Thread.currentThread().getName();
+		String th = this.toString();
+		log.debug(tn + " (" + classCount + ") " + tl + " " + s + " " + th);
+	}
 }
