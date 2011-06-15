@@ -232,8 +232,11 @@ public class IrcBotGui extends AbstractSamplerGui {
 		for (Map.Entry<String, Set<JCheckBox>> curEntry : checkBoxGroups.entrySet()) {
 			JPanel checkBoxPanel = generatePanel(null, curEntry.getKey());
 			checkBoxPanel.setLayout(new BoxLayout(checkBoxPanel, BoxLayout.PAGE_AXIS));
-			for (JCheckBox curCheckBox : curEntry.getValue())
+			for (JCheckBox curCheckBox : curEntry.getValue()) {
+				//Check the box by default
+				curCheckBox.setSelected(true);
 				checkBoxPanel.add(curCheckBox);
+			}
 			checkBoxPanelParent.add(checkBoxPanel);
 		}
 
