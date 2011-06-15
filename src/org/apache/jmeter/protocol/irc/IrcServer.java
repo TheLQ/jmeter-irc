@@ -126,10 +126,8 @@ public class IrcServer {
 	public void close() throws IOException {
 		closedGood = true;
 		//Close down all of the clients
-		for (Client curClient : clients) {
-			curClient.getIn().close();
-			curClient.getOut().close();
-		}
+		for (Client curClient : clients)
+			forgetClient(curClient);
 		if (server.isBound())
 			server.close();
 	}
