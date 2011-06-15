@@ -102,7 +102,7 @@ public class IrcBotSampler extends AbstractSampler {
 		if (!getPropertyAsBoolean(operatorKick))
 			responseMap.put(operatorKick, generateSet("${thisHostmask} KICK ${channel} ${targetNick}: ${random}", "${thisHostmask} JOIN :${channel}"));
 		if (!getPropertyAsBoolean(operatorBan))
-			responseMap.put(operatorBan, generateSet("${thisHostmask} MODE ${channel} +b ${targetNick}!*@*", "${thisHostmask} MODE ${channel} -b ${targetNick}!*@*"));
+			responseMap.put(operatorBan, generateSet("${thisHostmask} MODE ${channel} +b ${thisNick}!*@*", "${thisHostmask} MODE ${channel} -b ${thisNick}!*@*"));
 		if (!getPropertyAsBoolean(userPart))
 			responseMap.put(userPart, generateSet("${thisHostmask} PART ${channel} :${random}", "${thisHostmask} JOIN :${channel}"));
 		if (!getPropertyAsBoolean(userQuit))
@@ -137,10 +137,12 @@ public class IrcBotSampler extends AbstractSampler {
 		waitFor = UUID.randomUUID().toString();
 		waitLatch = new CountDownLatch(1); 
 		response = null;
+		String thisNick = getPropertyAsString(botPrefix) + botNumber;
 		
 		//Build the line to send
 		String line = lineItem;
-		line = line.replace("${thisHostmask}", getPropertyAsString(botPrefix) + botNumber);
+		line = line.replace("${thisHostmask}", thisNick + "!~jmeter@bots.jmeter");
+		line = line.replace("${thisNick}", thisNick);
 		line = line.replace("${channel}", getPropertyAsString(channelPrefix) + channelRandom.nextInt(getPropertyAsInt(numChannels) + 1));
 		line = line.replace("${targetNick}", getPropertyAsString(targetNick));
 		line = line.replace("${random}", waitFor);
