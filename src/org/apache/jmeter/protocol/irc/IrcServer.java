@@ -73,7 +73,7 @@ public class IrcServer {
 			try {
 				//Temporarily set timeout to 5 seconds
 				client.getSocket().setSoTimeout(5000);
-				System.out.println("Waiting for initial Nick line");
+				client.log("Waiting for initial Nick line");
 				//Wait for initial NICK line
 				while ((inputLine = client.getIn().readLine()) != null)
 					if (inputLine.toUpperCase().trim().startsWith("NICK ")) {
@@ -85,17 +85,17 @@ public class IrcServer {
 				forgetClient(client);
 			}
 
-			System.out.println("Nick recieved, continuing");
+			client.log("Nick recieved, continuing");
 
 			//Resume normal timeout
 			client.getSocket().setSoTimeout(0);
 
-			System.out.println("Sending that client has connected");
+			client.log("Sending that client has connected");
 			//Write line saying client has connected to this IRC server
 			client.getOut().write(":" + serverAddress + " 004 " + serverAddress + " jmeter-ircd-basic-0.1 ov b\r\n");
 			client.getOut().flush();
 
-			System.out.println("Awaiting input from user");
+			client.log("Awaiting input from user");
 			//Read input from user
 			while ((inputLine = client.getIn().readLine()) != null)
 				//Dispatch to listeners
@@ -138,16 +138,24 @@ public class IrcServer {
 	}
 
 	@Data
-	protected class Client {
+	protected static class Client {
 		protected Socket socket;
 		protected BufferedReader in;
 		protected BufferedWriter out;
 		protected String initNick;
+		protected static int totalClients = 0;
+		protected int clientNum;
 
 		public Client(Socket socket) throws IOException {
 			this.socket = socket;
 			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+			totalClients++;
+			clientNum = totalClients;
+		}
+
+		public void log(String line) {
+			System.out.println(clientNum + ": ");
 		}
 	}
 
