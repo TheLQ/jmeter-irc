@@ -28,8 +28,6 @@ import java.net.Socket;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import lombok.Data;
 
 /**
@@ -40,10 +38,11 @@ public class IrcServer {
 	protected int port;
 	protected ServerSocket server;
 	protected Set<Client> clients = Collections.synchronizedSet(new HashSet());
-
+	protected Set<IrcBotSampler> listeners = Collections.synchronizedSet(new HashSet());
+	
 	public IrcServer() {
 	}
-
+	
 	public void init() throws IOException {
 		server = new ServerSocket(port);
 		while (true) {
@@ -58,13 +57,14 @@ public class IrcServer {
 			};
 		}
 	}
-
+	
 	public void handleClientInput(Client client) {
 		try {
 			String inputLine = "";
-			while ((inputLine = client.getIn().readLine()) != null) {
-				
-			}
+			while ((inputLine = client.getIn().readLine()) != null)
+				//Dispatch to listeners
+				for (IrcBotSampler listener : listeners)
+					listener.acceptLine(inputLine);
 
 			//Client has disconnected, forget about
 			client.getIn().close();
@@ -73,15 +73,15 @@ public class IrcServer {
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
-
+		
 	}
-
+	
 	@Data
 	protected class Client {
 		protected Socket socket;
 		protected BufferedReader in;
 		protected BufferedWriter out;
-
+		
 		public Client(Socket socket) throws IOException {
 			this.socket = socket;
 			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));

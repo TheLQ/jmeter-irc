@@ -101,6 +101,10 @@ public class IrcBotSampler extends AbstractSampler {
 
 		return res;
 	}
+	
+	public void acceptLine(String line) {
+		
+	}
 
 	public void generateResponses() {
 		Map<String, Set<String>> map = new HashMap();
