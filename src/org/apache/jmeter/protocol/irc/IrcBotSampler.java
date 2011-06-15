@@ -142,17 +142,32 @@ public class IrcBotSampler extends AbstractSampler {
 			waitFor = UUID.randomUUID().toString();
 			waitLatch = new CountDownLatch(1);
 			response = null;
-			String thisNick = getPropertyAsString(botPrefix) + botNumber;
 
 			//Build the line to send
-			String line = lineItem;
-			line = line.replace("${thisHostmask}", thisNick + "!~jmeter@bots.jmeter");
-			line = line.replace("${thisNick}", thisNick);
-			line = line.replace("${channel}", getPropertyAsString(channelPrefix) + channelRandom.nextInt(getPropertyAsInt(numChannels) + 1));
-			line = line.replace("${targetNick}", getPropertyAsString(targetNick));
-			line = line.replace("${random}", waitFor);
-			line = line.replace("${command}", getPropertyAsString(command));
+			String thisNickLine = getPropertyAsString(botPrefix) + botNumber;
+			String thisHostmaskLine = thisNickLine + "!~jmeter@bots.jmeter";
+			String channelLine = getPropertyAsString(channelPrefix) + channelRandom.nextInt(getPropertyAsInt(numChannels) + 1);
+			String targetNickLine = getPropertyAsString(targetNick);
+			String commandLine = getPropertyAsString(command);
 
+			String line = lineItem;
+			line = line.replace("${thisNick}", thisNickLine);
+			line = line.replace("${thisHostmask}", thisHostmaskLine);
+			line = line.replace("${channel}", channelLine);
+			line = line.replace("${targetNick}", targetNickLine);
+			line = line.replace("${random}", waitFor);
+			line = line.replace("${command}", commandLine);
+
+			String requestData = "Unprocessed Line - " + lineItem + "\n\r"
+					+ "${thisNick} - " + thisNickLine + "\n\r"
+					+ "${thisHostmask} - " + thisHostmaskLine + "\n\r"
+					+ "${channel} - " + channelLine + "\n\r"
+					+ "${targetNick} - " + targetNickLine + "\n\r"
+					+ "${random} - " + waitFor + "\n\r"
+					+ "${command} - " + commandLine + "\n\r"
+					+ "Processed Line - " + line;
+			res.setSamplerData(requestData);
+			
 			/*
 			 * Perform the sampling
 			 */
@@ -163,7 +178,6 @@ public class IrcBotSampler extends AbstractSampler {
 			/*
 			 * Set up the sample result details
 			 */
-			res.setSamplerData(line);
 			res.setResponseData(response, null);
 			res.setDataType(SampleResult.TEXT);
 
