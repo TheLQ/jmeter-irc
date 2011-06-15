@@ -42,7 +42,8 @@ public class IrcServer {
 	protected Set<IrcBotSampler> listeners = Collections.synchronizedSet(new HashSet());
 	protected final String serverAddress = "irc.jmeter";
 
-	public IrcServer() {
+	public IrcServer(int port) {
+		this.port = port;
 	}
 
 	public void init() throws IOException {
@@ -126,6 +127,10 @@ public class IrcServer {
 			curClient.getOut().flush();
 		}
 	}
+	
+	public int getPort() {
+		return port;
+	}
 
 	@Data
 	protected class Client {
@@ -142,8 +147,7 @@ public class IrcServer {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		IrcServer server = new IrcServer();
-		server.port = 6667;
+		IrcServer server = new IrcServer(6667);
 		server.init();
 	}
 }
