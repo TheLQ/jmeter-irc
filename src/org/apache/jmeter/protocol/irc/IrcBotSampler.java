@@ -30,6 +30,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.jmeter.samplers.AbstractSampler;
 import org.apache.jmeter.samplers.Entry;
 import org.apache.jmeter.samplers.SampleResult;
@@ -60,7 +61,6 @@ public class IrcBotSampler extends AbstractSampler {
 	public static final String operatorBan = "IrcBotSampler.operatorBan";
 	public static final String userPart = "IrcBotSampler.userPart";
 	public static final String userQuit = "IrcBotSampler.userQuit";
-	
 	private static int classCount = 0; // keep track of classes created
 	protected IrcServer server;
 	protected int botNumber;
@@ -69,8 +69,8 @@ public class IrcBotSampler extends AbstractSampler {
 	protected String waitFor;
 	protected CountDownLatch waitLatch;
 	protected String response;
-	LinkedList<String> responseItems;
-	LinkedList<String> responseTypes;
+	protected LinkedList<String> responseItems = new LinkedList<String>();
+	protected LinkedList<String> responseTypes = new LinkedList<String>();
 
 	public IrcBotSampler() {
 		this.server = IrcBotGui.getServer();
@@ -112,7 +112,7 @@ public class IrcBotSampler extends AbstractSampler {
 		List<String> randomKeys = new ArrayList(responseMap.keySet());
 		Collections.shuffle(randomKeys);
 		for (String curKey : randomKeys)
-			for(String curResponse : responseMap.get(curKey)) {
+			for (String curResponse : responseMap.get(curKey)) {
 				responseTypes.add(curKey);
 				responseItems.add(curResponse);
 			}
@@ -120,42 +120,44 @@ public class IrcBotSampler extends AbstractSampler {
 
 	@Override
 	public SampleResult sample(Entry e) {
-		trace("sample()");
 		SampleResult res = new SampleResult();
 		res.setSuccessful(false); // Assume failure
 		res.setSampleLabel(getName());
 
-		//Reset last item if nessesary
-		if(lastItem >= responseItems.size())
-			lastItem = -1;
-		
-		//Get next item in the list
-		String lineItem = responseItems.get(lastItem + 1); 
-		String lineType = responseTypes.get(lastItem + 1);
-		lastItem++;
-		
-		waitFor = UUID.randomUUID().toString();
-		waitLatch = new CountDownLatch(1); 
-		response = null;
-		String thisNick = getPropertyAsString(botPrefix) + botNumber;
-		
-		//Build the line to send
-		String line = lineItem;
-		line = line.replace("${thisHostmask}", thisNick + "!~jmeter@bots.jmeter");
-		line = line.replace("${thisNick}", thisNick);
-		line = line.replace("${channel}", getPropertyAsString(channelPrefix) + channelRandom.nextInt(getPropertyAsInt(numChannels) + 1));
-		line = line.replace("${targetNick}", getPropertyAsString(targetNick));
-		line = line.replace("${random}", waitFor);
-		line = line.replace("${command}", getPropertyAsString(command));
-		
-		/*
-		 * Perform the sampling
-		 */
-		res.sampleStart(); // Start timing
 		try {
+			init();
+			trace("sample()");
+
+			//Reset last item if nessesary
+			if (lastItem >= responseItems.size())
+				lastItem = -1;
+
+			//Get next item in the list
+			String lineItem = responseItems.get(lastItem + 1);
+			String lineType = responseTypes.get(lastItem + 1);
+			lastItem++;
+
+			waitFor = UUID.randomUUID().toString();
+			waitLatch = new CountDownLatch(1);
+			response = null;
+			String thisNick = getPropertyAsString(botPrefix) + botNumber;
+
+			//Build the line to send
+			String line = lineItem;
+			line = line.replace("${thisHostmask}", thisNick + "!~jmeter@bots.jmeter");
+			line = line.replace("${thisNick}", thisNick);
+			line = line.replace("${channel}", getPropertyAsString(channelPrefix) + channelRandom.nextInt(getPropertyAsInt(numChannels) + 1));
+			line = line.replace("${targetNick}", getPropertyAsString(targetNick));
+			line = line.replace("${random}", waitFor);
+			line = line.replace("${command}", getPropertyAsString(command));
+
+			/*
+			 * Perform the sampling
+			 */
+			res.sampleStart(); // Start timing
 			server.sendToClients(line);
 			waitLatch.await();
-			
+
 			/*
 			 * Set up the sample result details
 			 */
@@ -169,13 +171,15 @@ public class IrcBotSampler extends AbstractSampler {
 			log.debug("", ex);
 			res.setResponseCode("500");
 			res.setResponseMessage(ex.toString());
+			res.setResponseData("ERROR IN SAMPLING: " + ExceptionUtils.getFullStackTrace(ex), null);
+			res.setDataType(SampleResult.TEXT);
 		}
 		res.sampleEnd(); // End timimg
 		return res;
 	}
 
 	public void acceptLine(String line) {
-		if(line.contains(waitFor))
+		if (line.contains(waitFor))
 			waitLatch.countDown();
 	}
 
