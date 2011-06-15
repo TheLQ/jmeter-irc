@@ -117,6 +117,7 @@ public class IrcServer {
 			curClient.getIn().close();
 			curClient.getOut().close();
 		}
+		server.close();
 	}
 	
 	public synchronized void sendToClients(String line) throws IOException {
