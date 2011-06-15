@@ -19,16 +19,23 @@
 package org.apache.jmeter.protocol.irc;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.LayoutManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -54,7 +61,6 @@ public class IrcBotGui extends AbstractSamplerGui {
 	protected JTextField numChannels;
 	protected JTextField command;
 	protected JTextField targetNick;
-	protected JTextField server;
 	protected JTextField port;
 	protected JCheckBox channelCommand;
 	protected JCheckBox PMCommand;
@@ -69,6 +75,7 @@ public class IrcBotGui extends AbstractSamplerGui {
 	protected JCheckBox operatorBan;
 	protected JCheckBox userPart;
 	protected JCheckBox userQuit;
+	protected IrcServer server;
 
 	public IrcBotGui() {
 		// Standard setup
@@ -88,11 +95,59 @@ public class IrcBotGui extends AbstractSamplerGui {
 		JPanel ircServer = generatePanel(new BorderLayout(), "IRC Server");
 
 		HorizontalPanel panel = new HorizontalPanel();
-		panel.add(generateTextField(server = new JTextField(15), JMeterUtils.getResString("web_server_domain")));
-		panel.add(generateTextField(port = new JTextField(6), JMeterUtils.getResString("web_server_port")));
+
+		final JLabel statusLabel = new JLabel("Status: Stopped");
+		panel.add(statusLabel);
+
+		final JButton startStopButton = new JButton("Start");
+		panel.add(startStopButton);
+		startStopButton.setActionCommand("StartStopButton");
+		startStopButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					if (e.getActionCommand().equals("StartStopButton"))
+						if (startStopButton.getText().equals("Start")) {
+							restartServer(Integer.parseInt(port.getText()));
+							startStopButton.setText("Stop");
+						} else if (startStopButton.getText().equals("Stop")) {
+							restartServer(Integer.parseInt(port.getText()));
+							startStopButton.setText("Start");
+						}
+				} catch (Exception ex) {
+					statusLabel.setText("Status: Error");
+					statusLabel.setForeground(Color.red);
+				}
+
+			}
+		});
+
+		panel.add(new JLabel("Host: 127.0.0.1"));
+		panel.add(generateTextField(port = new JTextField("6667", 6), JMeterUtils.getResString("web_server_port")));
+		port.addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusLost(FocusEvent e) {
+				try {
+					int portValue = Integer.parseInt(port.getText());
+					if (e.getComponent() == port && server.getPort() != portValue)
+						//Recreate server with new port
+						restartServer(portValue);
+				} catch (Exception ex) {
+					statusLabel.setText("Status: Error");
+					statusLabel.setForeground(Color.red);
+				}
+			}
+		});
 
 		ircServer.add(panel);
 		return ircServer;
+	}
+
+	protected IrcServer restartServer(int portValue) throws IOException {
+		if (server != null)
+			server.close();
+		server = new IrcServer(portValue);
+		return server;
 	}
 
 	/*
@@ -221,7 +276,7 @@ public class IrcBotGui extends AbstractSamplerGui {
 
 	@Override
 	public TestElement createTestElement() {
-		IrcBotSampler sampler = new IrcBotSampler();
+		IrcBotSampler sampler = new IrcBotSampler(server);
 		modifyTestElement(sampler);
 		return sampler;
 	}
