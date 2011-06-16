@@ -115,7 +115,6 @@ public class IrcServer {
 						WaitRequest curRequest = requestItr.next();
 						String name = curRequest.getName();
 						if (inputLine.contains(curRequest.getUuid()) || inputLine.contains(name + " ") || inputLine.trim().endsWith(name)) {
-							System.out.println("Found a request for line - " + inputLine);
 							curRequest.setLine(inputLine);
 							curRequest.getLatch().countDown();
 							requestItr.remove();
@@ -158,7 +157,6 @@ public class IrcServer {
 	}
 
 	public synchronized void sendToClients(String line) throws IOException {
-		log.debug("Sending line to clients - " + line);
 		for (Client curClient : clients) {
 			curClient.getOut().write(line + "\r\n");
 			curClient.getOut().flush();
