@@ -31,12 +31,15 @@ import java.util.HashSet;
 import java.util.Set;
 import lombok.Data;
 import lombok.Getter;
+import org.apache.jorphan.logging.LoggingManager;
+import org.apache.log.Logger;
 
 /**
  *
  * @author lordquackstar
  */
 public class IrcServer {
+	private static final Logger log = LoggingManager.getLoggerForClass();
 	protected int port;
 	protected ServerSocket server;
 	protected Set<Client> clients = Collections.synchronizedSet(new HashSet());
@@ -51,9 +54,9 @@ public class IrcServer {
 
 	public void init() throws IOException {
 		server = new ServerSocket(port);
-		System.out.println("Server created on port " + port);
+		log.info("Server created on port " + port);
 		while (true) {
-			System.out.println("Waiting for clients");
+			log.info("Waiting for clients");
 			final Client curClient = new Client(server.accept());
 			curClient.log("New client connection accepted");
 			clients.add(curClient);
@@ -133,7 +136,7 @@ public class IrcServer {
 	}
 
 	public synchronized void sendToClients(String line) throws IOException {
-		System.out.println("Sending line to clients - " + line);
+		log.debug("Sending line to clients - " + line);
 		for (Client curClient : clients) {
 			curClient.getOut().write(line + "\r\n");
 			curClient.getOut().flush();
@@ -166,7 +169,7 @@ public class IrcServer {
 		}
 
 		public void log(String line) {
-			System.out.println(clientNum + ": " + line);
+			log.debug(clientNum + ": " + line);
 		}
 	}
 
