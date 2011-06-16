@@ -142,6 +142,14 @@ public class IrcBotSampler extends AbstractSampler {
 				return res;
 			}
 
+			//Make sure the nick is set
+			if (getPropertyAsString(botPrefix) == null) {
+				res.setResponseCode("404");
+				res.setResponseMessage("Target nick not set!");
+				res.setDataType(SampleResult.TEXT);
+				return res;
+			}
+
 			//Reset last item if nessesary
 			if (lastItem > responseItems.size())
 				lastItem = -1;
