@@ -115,6 +115,7 @@ public class IrcServer {
 						WaitRequest curRequest = requestItr.next();
 						String name = curRequest.getName();
 						if (inputLine.contains(curRequest.getUuid()) || inputLine.contains(name + " ") || inputLine.trim().endsWith(name)) {
+							System.out.println("Found a request for line - " + inputLine);
 							curRequest.getLatch().countDown();
 							requestItr.remove();
 						}
@@ -133,6 +134,8 @@ public class IrcServer {
 
 	public CountDownLatch waitFor(String botName, String uuid) {
 		WaitRequest request = new WaitRequest();
+		request.setName(botName);
+		request.setUuid(uuid);
 		waitRequests.add(request);
 		return request.getLatch();
 	}
