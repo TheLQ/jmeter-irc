@@ -208,6 +208,7 @@ public class IrcBotSampler extends AbstractSampler {
 			res.setResponseData("ERROR IN SAMPLING: " + ExceptionUtils.getFullStackTrace(ex), null);
 			res.setDataType(SampleResult.TEXT);
 		}
+		server.getListeners().remove(this);
 		return res;
 	}
 
