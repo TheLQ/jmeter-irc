@@ -66,8 +66,6 @@ public class IrcBotSampler extends AbstractSampler {
 	protected int botNumber;
 	protected int lastItem = -1;
 	protected static Random channelRandom = new Random();
-	protected String waitFor;
-	protected CountDownLatch waitLatch;
 	protected String response;
 	protected LinkedList<String> responseItems = new LinkedList<String>();
 	protected LinkedList<String> responseTypes = new LinkedList<String>();
@@ -144,9 +142,6 @@ public class IrcBotSampler extends AbstractSampler {
 				return res;
 			}
 
-			if(!server.getListeners().contains(this))
-				server.getListeners().add(this);
-
 			//Reset last item if nessesary
 			if (lastItem > responseItems.size())
 				lastItem = -1;
@@ -156,8 +151,7 @@ public class IrcBotSampler extends AbstractSampler {
 			String lineType = responseTypes.get(lastItem + 1);
 			lastItem++;
 
-			waitFor = UUID.randomUUID().toString();
-			waitLatch = new CountDownLatch(1);
+			String uuid = UUID.randomUUID().toString();
 			response = null;
 
 			//Build the line to send
@@ -172,7 +166,7 @@ public class IrcBotSampler extends AbstractSampler {
 			line = line.replace("${thisHostmask}", thisHostmaskLine);
 			line = line.replace("${channel}", channelLine);
 			line = line.replace("${targetNick}", targetNickLine);
-			line = line.replace("${random}", waitFor);
+			line = line.replace("${random}", uuid);
 			line = line.replace("${command}", commandLine);
 
 			String requestData = "Unprocessed Line - " + lineItem + "\n\r"
@@ -180,7 +174,7 @@ public class IrcBotSampler extends AbstractSampler {
 					+ "${thisHostmask} - " + thisHostmaskLine + "\n\r"
 					+ "${channel} - " + channelLine + "\n\r"
 					+ "${targetNick} - " + targetNickLine + "\n\r"
-					+ "${random} - " + waitFor + "\n\r"
+					+ "${random} - " + uuid + "\n\r"
 					+ "${command} - " + commandLine + "\n\r"
 					+ "Processed Line - " + line;
 			res.setSamplerData(requestData);
@@ -189,8 +183,9 @@ public class IrcBotSampler extends AbstractSampler {
 			 * Perform the sampling
 			 */
 			res.sampleStart(); // Start timing
+			CountDownLatch latch = server.waitFor(thisNickLine, uuid);
 			server.sendToClients(line);
-			waitLatch.await();
+			latch.await();
 			res.sampleEnd(); // End timimg
 
 			/*
@@ -208,16 +203,7 @@ public class IrcBotSampler extends AbstractSampler {
 			res.setResponseData("ERROR IN SAMPLING: " + ExceptionUtils.getFullStackTrace(ex), null);
 			res.setDataType(SampleResult.TEXT);
 		}
-		server.getListeners().remove(this);
 		return res;
-	}
-
-	public void acceptLine(String line) {
-		String name = getPropertyAsString(botPrefix) + botNumber;
-		if (line.contains(waitFor) || line.contains(name + " ") || line.trim().endsWith(name)) {
-			response = line;
-			waitLatch.countDown();
-		}
 	}
 
 	protected Set<String> generateSet(String... responses) {

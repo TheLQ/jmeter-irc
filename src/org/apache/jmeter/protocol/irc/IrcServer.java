@@ -28,9 +28,13 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.jorphan.logging.LoggingManager;
 import org.apache.log.Logger;
 
@@ -43,7 +47,7 @@ public class IrcServer {
 	protected int port;
 	protected ServerSocket server;
 	protected Set<Client> clients = Collections.synchronizedSet(new HashSet());
-	protected Set<IrcBotSampler> listeners = Collections.synchronizedSet(new HashSet());
+	protected Set<WaitRequest> waitRequests = Collections.synchronizedSet(new HashSet());
 	protected final String serverAddress = "irc.jmeter";
 	@Getter
 	protected boolean closedGood = false;
@@ -105,9 +109,17 @@ public class IrcServer {
 				client.log("Recieved line from client - " + inputLine);
 				if (inputLine.toUpperCase().trim().startsWith("JOIN "))
 					sendToClients(":" + client.getInitNick() + "!~client@clients.jmeter JOIN :" + inputLine.split(" ", 2)[1]);
-				//Dispatch to listeners
-				for (IrcBotSampler listener : listeners)
-					listener.acceptLine(inputLine);
+				//See if there are any wait requests on this
+				synchronized (waitRequests) {
+					for (Iterator<WaitRequest> requestItr = waitRequests.iterator(); requestItr.hasNext();) {
+						WaitRequest curRequest = requestItr.next();
+						String name = curRequest.getName();
+						if (inputLine.contains(curRequest.getUuid()) || inputLine.contains(name + " ") || inputLine.trim().endsWith(name)) {
+							curRequest.getLatch().countDown();
+							requestItr.remove();
+						}
+					}
+				}
 			}
 
 			//Client has disconnected, forget about
@@ -117,6 +129,12 @@ public class IrcServer {
 			client.log("Exception in client");
 			ex.printStackTrace();
 		}
+	}
+
+	public CountDownLatch waitFor(String botName, String uuid) {
+		WaitRequest request = new WaitRequest();
+		waitRequests.add(request);
+		return request.getLatch();
 	}
 
 	public void forgetClient(Client client) throws IOException {
@@ -147,10 +165,6 @@ public class IrcServer {
 		return port;
 	}
 
-	public Set<IrcBotSampler> getListeners() {
-		return listeners;
-	}
-	
 	public Set<Client> getClients() {
 		return clients;
 	}
@@ -175,6 +189,14 @@ public class IrcServer {
 		public void log(String line) {
 			log.debug(clientNum + ": " + line);
 		}
+	}
+
+	@Data
+	public class WaitRequest {
+		protected String name;
+		protected String uuid;
+		@Setter(AccessLevel.NONE)
+		protected CountDownLatch latch = new CountDownLatch(1);
 	}
 
 	public static void main(String[] args) throws IOException {
