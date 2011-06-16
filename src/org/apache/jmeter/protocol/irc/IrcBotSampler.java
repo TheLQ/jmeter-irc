@@ -104,7 +104,7 @@ public class IrcBotSampler extends AbstractSampler {
 		if (getPropertyAsBoolean(operatorBan))
 			responseMap.put(operatorBan, generateSet(":${thisHostmask} MODE ${channel} +b ${thisNick}!*@*", ":${thisHostmask} MODE ${channel} -b ${thisNick}!*@*"));
 		if (getPropertyAsBoolean(userPart))
-			responseMap.put(userPart, generateSet(":${thisHostmask} PART ${channel} :${random}", ":${thisHostmask} JOIN :${channel}"));
+			responseMap.put(userPart, generateSet(":${thisHostmask} PART ${channel}", ":${thisHostmask} JOIN :${channel}"));
 		if (getPropertyAsBoolean(userQuit))
 			responseMap.put(userQuit, generateSet(":${thisHostmask} QUIT :${random}", ":${thisHostmask} JOIN :${channel}"));
 
