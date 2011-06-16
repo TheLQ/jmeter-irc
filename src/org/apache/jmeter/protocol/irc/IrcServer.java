@@ -150,6 +150,10 @@ public class IrcServer {
 	public Set<IrcBotSampler> getListeners() {
 		return listeners;
 	}
+	
+	public Set<Client> getClients() {
+		return clients;
+	}
 
 	@Data
 	protected static class Client {
