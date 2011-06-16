@@ -31,6 +31,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.logging.Level;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
@@ -125,10 +126,10 @@ public class IrcServer {
 
 			//Client has disconnected, forget about
 			client.log("Client has disconnected, ending");
-			forgetClient(client);
 		} catch (IOException ex) {
-			client.log("Exception in client");
-			ex.printStackTrace();
+			log.error("Client #" + client.getClientNum() +" raised exception during input. Forgetting about client now...", ex);
+		} finally {
+			forgetClient(client);
 		}
 	}
 
@@ -140,11 +141,16 @@ public class IrcServer {
 		return request;
 	}
 
-	public void forgetClient(Client client) throws IOException {
+	public void forgetClient(Client client) {
 		client.log("Forgetting about client ");
-		client.getIn().close();
-		client.getOut().close();
-		clients.remove(client);
+		try {
+			client.getIn().close();
+			client.getOut().close();
+		} catch (IOException ex) {
+			log.error("Client #" + client.getClientNum() +" raised exception when disconnecting", ex);
+		} finally {
+			clients.remove(client);
+		}
 	}
 
 	public void close() throws IOException {
