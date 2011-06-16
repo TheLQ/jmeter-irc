@@ -29,8 +29,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.jmeter.protocol.irc.IrcServer.WaitRequest;
 import org.apache.jmeter.samplers.AbstractSampler;
 import org.apache.jmeter.samplers.Entry;
 import org.apache.jmeter.samplers.SampleResult;
@@ -66,7 +66,6 @@ public class IrcBotSampler extends AbstractSampler {
 	protected int botNumber;
 	protected int lastItem = -1;
 	protected static Random channelRandom = new Random();
-	protected String response;
 	protected LinkedList<String> responseItems = new LinkedList<String>();
 	protected LinkedList<String> responseTypes = new LinkedList<String>();
 
@@ -160,7 +159,6 @@ public class IrcBotSampler extends AbstractSampler {
 			lastItem++;
 
 			String uuid = UUID.randomUUID().toString();
-			response = null;
 
 			//Build the line to send
 			String thisNickLine = getPropertyAsString(botPrefix) + botNumber;
@@ -191,15 +189,15 @@ public class IrcBotSampler extends AbstractSampler {
 			 * Perform the sampling
 			 */
 			res.sampleStart(); // Start timing
-			CountDownLatch latch = server.waitFor(thisNickLine, uuid);
+			WaitRequest request = server.waitFor(thisNickLine, uuid);
 			server.sendToClients(line);
-			latch.await();
+			request.getLatch().await();
 			res.sampleEnd(); // End timimg
 
 			/*
 			 * Set up the sample result details
 			 */
-			res.setResponseData(response, null);
+			res.setResponseData(request.getLine(), null);
 			res.setDataType(SampleResult.TEXT);
 
 			res.setResponseCodeOK();

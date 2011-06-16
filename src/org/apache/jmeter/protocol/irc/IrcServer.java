@@ -116,6 +116,7 @@ public class IrcServer {
 						String name = curRequest.getName();
 						if (inputLine.contains(curRequest.getUuid()) || inputLine.contains(name + " ") || inputLine.trim().endsWith(name)) {
 							System.out.println("Found a request for line - " + inputLine);
+							curRequest.setLine(inputLine);
 							curRequest.getLatch().countDown();
 							requestItr.remove();
 						}
@@ -132,12 +133,12 @@ public class IrcServer {
 		}
 	}
 
-	public CountDownLatch waitFor(String botName, String uuid) {
+	public WaitRequest waitFor(String botName, String uuid) {
 		WaitRequest request = new WaitRequest();
 		request.setName(botName);
 		request.setUuid(uuid);
 		waitRequests.add(request);
-		return request.getLatch();
+		return request;
 	}
 
 	public void forgetClient(Client client) throws IOException {
@@ -200,6 +201,8 @@ public class IrcServer {
 		protected String uuid;
 		@Setter(AccessLevel.NONE)
 		protected CountDownLatch latch = new CountDownLatch(1);
+		@Setter(AccessLevel.PACKAGE)
+		protected String line;
 	}
 
 	public static void main(String[] args) throws IOException {
