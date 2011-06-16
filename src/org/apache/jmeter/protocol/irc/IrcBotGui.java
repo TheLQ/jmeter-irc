@@ -162,7 +162,6 @@ public class IrcBotGui extends AbstractSamplerGui {
 				}
 			}
 		}.start();
-		System.out.println("Setting values to started mode");
 		statusLabel.setToolTipText("");
 		startStopButton.setText("Stop");
 		statusLabel.setText("Status: Started on port " + portValue);
