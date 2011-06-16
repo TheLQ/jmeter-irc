@@ -157,10 +157,11 @@ public class IrcServer {
 	}
 
 	public synchronized void sendToClients(String line) throws IOException {
-		for (Client curClient : clients) {
-			curClient.getOut().write(line + "\r\n");
-			curClient.getOut().flush();
-		}
+		for (Client curClient : clients)
+			synchronized (curClient.getOut()) {
+				curClient.getOut().write(line + "\r\n");
+				curClient.getOut().flush();
+			}
 	}
 
 	public int getPort() {
