@@ -64,7 +64,7 @@ public class IrcBotSampler extends AbstractSampler {
 	private static int classCount = 0; // keep track of classes created
 	protected IrcServer server;
 	protected int botNumber;
-	protected int lastItem = 0;
+	protected int lastItem = -1;
 	protected static Random channelRandom = new Random();
 	protected String waitFor;
 	protected CountDownLatch waitLatch;
@@ -127,11 +127,11 @@ public class IrcBotSampler extends AbstractSampler {
 		try {
 			init();
 			trace("sample()");
-
+			
 			server.getListeners().add(this);
 
 			//Reset last item if nessesary
-			if (lastItem >= responseItems.size())
+			if (lastItem > responseItems.size())
 				lastItem = -1;
 
 			//Get next item in the list
