@@ -144,7 +144,8 @@ public class IrcBotSampler extends AbstractSampler {
 				return res;
 			}
 
-			server.getListeners().add(this);
+			if(!server.getListeners().contains(this))
+				server.getListeners().add(this);
 
 			//Reset last item if nessesary
 			if (lastItem > responseItems.size())
