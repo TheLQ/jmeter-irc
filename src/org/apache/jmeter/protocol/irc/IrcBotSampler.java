@@ -174,6 +174,7 @@ public class IrcBotSampler extends AbstractSampler {
 			res.sampleStart(); // Start timing
 			server.sendToClients(line);
 			waitLatch.await();
+			res.sampleEnd(); // End timimg
 
 			/*
 			 * Set up the sample result details
@@ -190,7 +191,6 @@ public class IrcBotSampler extends AbstractSampler {
 			res.setResponseData("ERROR IN SAMPLING: " + ExceptionUtils.getFullStackTrace(ex), null);
 			res.setDataType(SampleResult.TEXT);
 		}
-		res.sampleEnd(); // End timimg
 		return res;
 	}
 
