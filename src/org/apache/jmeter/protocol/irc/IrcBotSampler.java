@@ -127,7 +127,23 @@ public class IrcBotSampler extends AbstractSampler {
 		try {
 			init();
 			trace("sample()");
-			
+
+			//Make sure the server is setup
+			if (server == null) {
+				res.setResponseCode("400");
+				res.setResponseMessage("Built In IRC server not started");
+				res.setDataType(SampleResult.TEXT);
+				return res;
+			}
+
+			//Make sure there are clients to talk to
+			if (server.getClients().isEmpty()) {
+				res.setResponseCode("404");
+				res.setResponseMessage("No clients to talk to!");
+				res.setDataType(SampleResult.TEXT);
+				return res;
+			}
+
 			server.getListeners().add(this);
 
 			//Reset last item if nessesary
@@ -167,7 +183,7 @@ public class IrcBotSampler extends AbstractSampler {
 					+ "${command} - " + commandLine + "\n\r"
 					+ "Processed Line - " + line;
 			res.setSamplerData(requestData);
-			
+
 			/*
 			 * Perform the sampling
 			 */
