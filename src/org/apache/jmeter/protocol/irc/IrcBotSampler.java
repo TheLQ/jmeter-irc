@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.jmeter.protocol.irc.IrcServer.WaitRequest;
 import org.apache.jmeter.samplers.AbstractSampler;
@@ -159,9 +160,12 @@ public class IrcBotSampler extends AbstractSampler {
 			String lineItem = responseItems.get(lastItem + 1);
 			String lineType = responseTypes.get(lastItem + 1);
 			lastItem++;
+			
+			//Pad nick with 0s to generate a unique botName
+			String thisNickLine = getPropertyAsString(botPrefix) + botNumber;
+			thisNickLine = StringUtils.rightPad(thisNickLine, getPropertyAsString(botPrefix).length() + 9, "0");
 
 			//Build the line to send
-			String thisNickLine = getPropertyAsString(botPrefix) + botNumber;
 			String thisHostmaskLine = thisNickLine + "!~jmeter@bots.jmeter";
 			String channelLine = getPropertyAsString(channelPrefix) + channelRandom.nextInt(getPropertyAsInt(numChannels) + 1);
 			String targetNickLine = getPropertyAsString(targetNick);

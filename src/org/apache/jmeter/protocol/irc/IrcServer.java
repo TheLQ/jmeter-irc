@@ -115,8 +115,7 @@ public class IrcServer {
 					for (Iterator<WaitRequest> requestItr = waitRequests.iterator(); requestItr.hasNext();) {
 						WaitRequest curRequest = requestItr.next();
 						String name = curRequest.getName();
-						//Warning: Do not do straight contains(name) as name might be a substr of another name
-						if (inputLine.contains(name + " ") || inputLine.trim().endsWith(name)) {
+						if (inputLine.contains(name)) {
 							curRequest.setLine(inputLine);
 							curRequest.getLatch().countDown();
 							requestItr.remove();
