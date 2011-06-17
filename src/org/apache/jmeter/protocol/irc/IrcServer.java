@@ -26,10 +26,11 @@ import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import lombok.AccessLevel;
@@ -48,7 +49,7 @@ public class IrcServer {
 	protected int port;
 	protected ServerSocket server;
 	protected Set<Client> clients = Collections.synchronizedSet(new HashSet());
-	protected final LinkedList<WaitRequest> waitRequests = new LinkedList();
+	protected final List<WaitRequest> waitRequests = new ArrayList();
 	protected final String serverAddress = "irc.jmeter";
 	@Getter
 	protected boolean closedGood = false;
