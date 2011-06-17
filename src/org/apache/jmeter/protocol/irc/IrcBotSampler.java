@@ -61,18 +61,17 @@ public class IrcBotSampler extends AbstractSampler {
 	public static final String userPart = "IrcBotSampler.userPart";
 	public static final String userQuit = "IrcBotSampler.userQuit";
 	private static int classCount = 0; // keep track of classes created
-	protected IrcServer server;
 	protected int botNumber;
+	protected IrcServer server = IrcBotGui.getServer();
 	protected int lastItem = -1;
-	protected static Random channelRandom = new Random();
 	protected LinkedList<String> responseItems = new LinkedList<String>();
 	protected LinkedList<String> responseTypes = new LinkedList<String>();
+	protected static Random channelRandom = new Random();
 	protected String thisNick;
 	protected StringBuilder requestData;
 	protected int requestDataLength;
 
 	public IrcBotSampler() {
-		this.server = IrcBotGui.getServer();
 		botNumber = classCount++;
 	}
 
