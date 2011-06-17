@@ -48,7 +48,7 @@ public class IrcServer {
 	protected int port;
 	protected ServerSocket server;
 	protected Set<Client> clients = Collections.synchronizedSet(new HashSet());
-	protected Set<WaitRequest> waitRequests = Collections.synchronizedSet(new HashSet());
+	protected Set<WaitRequest> waitRequests = new HashSet();
 	protected final String serverAddress = "irc.jmeter";
 	@Getter
 	protected boolean closedGood = false;
@@ -129,7 +129,7 @@ public class IrcServer {
 			//Client has disconnected, forget about
 			client.log("Client has disconnected, ending");
 		} catch (IOException ex) {
-			log.error("Client #" + client.getClientNum() +" raised exception during input. Forgetting about client now...", ex);
+			log.error("Client #" + client.getClientNum() + " raised exception during input. Forgetting about client now...", ex);
 		} finally {
 			forgetClient(client);
 		}
@@ -138,7 +138,9 @@ public class IrcServer {
 	public WaitRequest waitFor(String botName) {
 		WaitRequest request = new WaitRequest();
 		request.setName(botName);
-		waitRequests.add(request);
+		synchronized (waitRequests) {
+			waitRequests.add(request);
+		}
 		return request;
 	}
 
@@ -148,7 +150,7 @@ public class IrcServer {
 			client.getIn().close();
 			client.getOut().close();
 		} catch (IOException ex) {
-			log.error("Client #" + client.getClientNum() +" raised exception when disconnecting", ex);
+			log.error("Client #" + client.getClientNum() + " raised exception when disconnecting", ex);
 		} finally {
 			clients.remove(client);
 		}
