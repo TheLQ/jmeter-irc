@@ -218,7 +218,7 @@ public class IrcBotSampler extends AbstractSampler {
 			curResponse = StringUtils.replace(curResponse, "${targetNick}", targetNickLine);
 			curResponse = StringUtils.replace(curResponse, "${command}", commandLine);
 			if (requestData == null) {
-				requestData.append("${thisNick} - ").append(thisNick).append("\n\r")
+				requestData = new StringBuilder().append("${thisNick} - ").append(thisNick).append("\n\r")
 						.append("${thisHostmask} - ").append(thisHostmaskLine).append("\n\r")
 						.append("${targetNick} - ").append(targetNickLine).append("\n\r")
 						.append("${command} - ").append(commandLine).append("\n\r");
