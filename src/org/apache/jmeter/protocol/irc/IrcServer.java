@@ -106,6 +106,7 @@ public class IrcServer {
 
 			client.log("Awaiting input from user");
 			//Read input from user
+			Input:
 			while ((inputLine = client.getIn().readLine()) != null) {
 				client.log("Recieved line from client - " + inputLine);
 				if (inputLine.toUpperCase().trim().startsWith("JOIN "))
@@ -119,7 +120,7 @@ public class IrcServer {
 							curRequest.setLine(inputLine);
 							curRequest.getLatch().countDown();
 							requestItr.remove();
-							break;
+							continue Input;
 						}
 					}
 				}
@@ -164,7 +165,7 @@ public class IrcServer {
 			server.close();
 	}
 
-	public synchronized void sendToClients(String line) throws IOException {
+	public void sendToClients(String line) throws IOException {
 		for (Client curClient : clients)
 			synchronized (curClient.getOut()) {
 				curClient.getOut().write(line + "\r\n");
