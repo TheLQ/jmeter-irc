@@ -115,7 +115,8 @@ public class IrcServer {
 					for (Iterator<WaitRequest> requestItr = waitRequests.iterator(); requestItr.hasNext();) {
 						WaitRequest curRequest = requestItr.next();
 						String name = curRequest.getName();
-						if (inputLine.contains(curRequest.getUuid()) || inputLine.contains(name + " ") || inputLine.trim().endsWith(name)) {
+						//Warning: Do not do straight contains(name) as name might be a substr of another name
+						if (inputLine.contains(name + " ") || inputLine.trim().endsWith(name)) {
 							curRequest.setLine(inputLine);
 							curRequest.getLatch().countDown();
 							requestItr.remove();
@@ -133,10 +134,9 @@ public class IrcServer {
 		}
 	}
 
-	public WaitRequest waitFor(String botName, String uuid) {
+	public WaitRequest waitFor(String botName) {
 		WaitRequest request = new WaitRequest();
 		request.setName(botName);
-		request.setUuid(uuid);
 		waitRequests.add(request);
 		return request;
 	}
@@ -203,7 +203,6 @@ public class IrcServer {
 	@Data
 	public class WaitRequest {
 		protected String name;
-		protected String uuid;
 		@Setter(AccessLevel.NONE)
 		protected CountDownLatch latch = new CountDownLatch(1);
 		@Setter(AccessLevel.PACKAGE)

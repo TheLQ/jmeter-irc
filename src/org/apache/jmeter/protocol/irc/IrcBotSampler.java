@@ -78,31 +78,31 @@ public class IrcBotSampler extends AbstractSampler {
 		//Setup possible response list
 		Map<String, Set<String>> responseMap = new HashMap();
 		if (getPropertyAsBoolean(channelCommand))
-			responseMap.put(channelCommand, generateSet(":${thisHostmask} PRIVMSG ${channel} :${command} ${random}"));
+			responseMap.put(channelCommand, generateSet(":${thisHostmask} PRIVMSG ${channel} :${command} ${thisNick}"));
 		if (getPropertyAsBoolean(PMCommand))
-			responseMap.put(PMCommand, generateSet(":${thisHostmask} PRIVMSG ${targetNick} :${command} ${random}"));
+			responseMap.put(PMCommand, generateSet(":${thisHostmask} PRIVMSG ${targetNick} :${command} ${thisNick}"));
 		if (getPropertyAsBoolean(channelMessage))
-			responseMap.put(channelMessage, generateSet(":${thisHostmask} PRIVMSG ${channel} :${random}"));
+			responseMap.put(channelMessage, generateSet(":${thisHostmask} PRIVMSG ${channel} :${thisNick}"));
 		if (getPropertyAsBoolean(channelAction))
-			responseMap.put(channelAction, generateSet(":${thisHostmask} PRIVMSG ${channel} :\u0001ACTION ${random}\u0001"));
+			responseMap.put(channelAction, generateSet(":${thisHostmask} PRIVMSG ${channel} :\u0001ACTION ${thisNick}\u0001"));
 		if (getPropertyAsBoolean(channelNotice))
-			responseMap.put(channelNotice, generateSet(":${thisHostmask} NOTICE ${channel} :${random}"));
+			responseMap.put(channelNotice, generateSet(":${thisHostmask} NOTICE ${channel} :${thisNick}"));
 		if (getPropertyAsBoolean(PMMessage))
-			responseMap.put(PMMessage, generateSet(":${thisHostmask} PRIVMSG ${targetNick} :${random}"));
+			responseMap.put(PMMessage, generateSet(":${thisHostmask} PRIVMSG ${targetNick} :${thisNick}"));
 		if (getPropertyAsBoolean(PMAction))
-			responseMap.put(PMAction, generateSet(":${thisHostmask} PRIVMSG ${targetNick} :\u0001ACTION ${random}\u0001"));
+			responseMap.put(PMAction, generateSet(":${thisHostmask} PRIVMSG ${targetNick} :\u0001ACTION ${thisNick}\u0001"));
 		if (getPropertyAsBoolean(operatorOp))
 			responseMap.put(operatorOp, generateSet(":${thisHostmask} MODE ${channel} +o ${thisNick}", ":${thisHostmask} MODE ${channel} -o ${thisNick}"));
 		if (getPropertyAsBoolean(operatorVoice))
 			responseMap.put(operatorVoice, generateSet(":${thisHostmask} MODE ${channel} +v ${thisNick}", ":${thisHostmask} MODE ${channel} -v ${thisNick}"));
 		if (getPropertyAsBoolean(operatorKick))
-			responseMap.put(operatorKick, generateSet(":${thisHostmask} KICK ${channel} ${targetNick}: ${random}", ":${thisHostmask} JOIN :${channel}"));
+			responseMap.put(operatorKick, generateSet(":${thisHostmask} KICK ${channel} ${targetNick}: ${thisNick}", ":${thisHostmask} JOIN :${channel}"));
 		if (getPropertyAsBoolean(operatorBan))
 			responseMap.put(operatorBan, generateSet(":${thisHostmask} MODE ${channel} +b ${thisNick}!*@*", ":${thisHostmask} MODE ${channel} -b ${thisNick}!*@*"));
 		if (getPropertyAsBoolean(userPart))
 			responseMap.put(userPart, generateSet(":${thisHostmask} PART ${channel}", ":${thisHostmask} JOIN :${channel}"));
 		if (getPropertyAsBoolean(userQuit))
-			responseMap.put(userQuit, generateSet(":${thisHostmask} QUIT :${random}", ":${thisHostmask} JOIN :${channel}"));
+			responseMap.put(userQuit, generateSet(":${thisHostmask} QUIT :${thisNick}", ":${thisHostmask} JOIN :${channel}"));
 
 		//Randomly shuffle responses and compact response to a single response queue
 		List<String> randomKeys = new ArrayList(responseMap.keySet());
@@ -160,8 +160,6 @@ public class IrcBotSampler extends AbstractSampler {
 			String lineType = responseTypes.get(lastItem + 1);
 			lastItem++;
 
-			String uuid = UUID.randomUUID().toString();
-
 			//Build the line to send
 			String thisNickLine = getPropertyAsString(botPrefix) + botNumber;
 			String thisHostmaskLine = thisNickLine + "!~jmeter@bots.jmeter";
@@ -174,7 +172,6 @@ public class IrcBotSampler extends AbstractSampler {
 			line = line.replace("${thisHostmask}", thisHostmaskLine);
 			line = line.replace("${channel}", channelLine);
 			line = line.replace("${targetNick}", targetNickLine);
-			line = line.replace("${random}", uuid);
 			line = line.replace("${command}", commandLine);
 
 			String requestData = "Unprocessed Line - " + lineItem + "\n\r"
@@ -182,7 +179,6 @@ public class IrcBotSampler extends AbstractSampler {
 					+ "${thisHostmask} - " + thisHostmaskLine + "\n\r"
 					+ "${channel} - " + channelLine + "\n\r"
 					+ "${targetNick} - " + targetNickLine + "\n\r"
-					+ "${random} - " + uuid + "\n\r"
 					+ "${command} - " + commandLine + "\n\r"
 					+ "Processed Line - " + line;
 			res.setSamplerData(requestData);
@@ -191,7 +187,7 @@ public class IrcBotSampler extends AbstractSampler {
 			 * Perform the sampling
 			 */
 			res.sampleStart(); // Start timing
-			WaitRequest request = server.waitFor(thisNickLine, uuid);
+			WaitRequest request = server.waitFor(thisNickLine);
 			server.sendToClients(line);
 			request.getLatch().await();
 			res.sampleEnd(); // End timimg
