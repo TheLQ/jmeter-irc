@@ -123,6 +123,7 @@ public class IrcServer {
 							continue Input;
 						}
 					}
+					log.warn("Client # " + client.getClientNum() + "Line not matched - " + inputLine);
 				}
 			}
 
