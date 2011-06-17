@@ -19,7 +19,6 @@
 package org.apache.jmeter.protocol.irc;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import java.util.UUID;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.jmeter.protocol.irc.IrcServer.WaitRequest;
@@ -69,6 +67,9 @@ public class IrcBotSampler extends AbstractSampler {
 	protected static Random channelRandom = new Random();
 	protected LinkedList<String> responseItems = new LinkedList<String>();
 	protected LinkedList<String> responseTypes = new LinkedList<String>();
+	protected String thisNick;
+	protected StringBuilder requestData;
+	protected int requestDataLength;
 
 	public IrcBotSampler() {
 		this.server = IrcBotGui.getServer();
@@ -76,34 +77,38 @@ public class IrcBotSampler extends AbstractSampler {
 	}
 
 	public void init() {
+		//Pad nick with 0s to generate a unique botName
+		thisNick = getPropertyAsString(botPrefix) + botNumber;
+		thisNick = StringUtils.rightPad(thisNick, getPropertyAsString(botPrefix).length() + 9, "0");
+
 		//Setup possible response list
 		Map<String, Set<String>> responseMap = new HashMap();
 		if (getPropertyAsBoolean(channelCommand))
-			responseMap.put(channelCommand, generateSet(":${thisHostmask} PRIVMSG ${channel} :${command} ${thisNick}"));
+			responseMap.put(channelCommand, generateResponseSet(":${thisHostmask} PRIVMSG ${channel} :${command} ${thisNick}"));
 		if (getPropertyAsBoolean(PMCommand))
-			responseMap.put(PMCommand, generateSet(":${thisHostmask} PRIVMSG ${targetNick} :${command} ${thisNick}"));
+			responseMap.put(PMCommand, generateResponseSet(":${thisHostmask} PRIVMSG ${targetNick} :${command} ${thisNick}"));
 		if (getPropertyAsBoolean(channelMessage))
-			responseMap.put(channelMessage, generateSet(":${thisHostmask} PRIVMSG ${channel} :${thisNick}"));
+			responseMap.put(channelMessage, generateResponseSet(":${thisHostmask} PRIVMSG ${channel} :${thisNick}"));
 		if (getPropertyAsBoolean(channelAction))
-			responseMap.put(channelAction, generateSet(":${thisHostmask} PRIVMSG ${channel} :\u0001ACTION ${thisNick}\u0001"));
+			responseMap.put(channelAction, generateResponseSet(":${thisHostmask} PRIVMSG ${channel} :\u0001ACTION ${thisNick}\u0001"));
 		if (getPropertyAsBoolean(channelNotice))
-			responseMap.put(channelNotice, generateSet(":${thisHostmask} NOTICE ${channel} :${thisNick}"));
+			responseMap.put(channelNotice, generateResponseSet(":${thisHostmask} NOTICE ${channel} :${thisNick}"));
 		if (getPropertyAsBoolean(PMMessage))
-			responseMap.put(PMMessage, generateSet(":${thisHostmask} PRIVMSG ${targetNick} :${thisNick}"));
+			responseMap.put(PMMessage, generateResponseSet(":${thisHostmask} PRIVMSG ${targetNick} :${thisNick}"));
 		if (getPropertyAsBoolean(PMAction))
-			responseMap.put(PMAction, generateSet(":${thisHostmask} PRIVMSG ${targetNick} :\u0001ACTION ${thisNick}\u0001"));
+			responseMap.put(PMAction, generateResponseSet(":${thisHostmask} PRIVMSG ${targetNick} :\u0001ACTION ${thisNick}\u0001"));
 		if (getPropertyAsBoolean(operatorOp))
-			responseMap.put(operatorOp, generateSet(":${thisHostmask} MODE ${channel} +o ${thisNick}", ":${thisHostmask} MODE ${channel} -o ${thisNick}"));
+			responseMap.put(operatorOp, generateResponseSet(":${thisHostmask} MODE ${channel} +o ${thisNick}", ":${thisHostmask} MODE ${channel} -o ${thisNick}"));
 		if (getPropertyAsBoolean(operatorVoice))
-			responseMap.put(operatorVoice, generateSet(":${thisHostmask} MODE ${channel} +v ${thisNick}", ":${thisHostmask} MODE ${channel} -v ${thisNick}"));
+			responseMap.put(operatorVoice, generateResponseSet(":${thisHostmask} MODE ${channel} +v ${thisNick}", ":${thisHostmask} MODE ${channel} -v ${thisNick}"));
 		if (getPropertyAsBoolean(operatorKick))
-			responseMap.put(operatorKick, generateSet(":${thisHostmask} KICK ${channel} ${targetNick}: ${thisNick}", ":${thisHostmask} JOIN :${channel}"));
+			responseMap.put(operatorKick, generateResponseSet(":${thisHostmask} KICK ${channel} ${targetNick}: ${thisNick}", ":${thisHostmask} JOIN :${channel}"));
 		if (getPropertyAsBoolean(operatorBan))
-			responseMap.put(operatorBan, generateSet(":${thisHostmask} MODE ${channel} +b ${thisNick}!*@*", ":${thisHostmask} MODE ${channel} -b ${thisNick}!*@*"));
+			responseMap.put(operatorBan, generateResponseSet(":${thisHostmask} MODE ${channel} +b ${thisNick}!*@*", ":${thisHostmask} MODE ${channel} -b ${thisNick}!*@*"));
 		if (getPropertyAsBoolean(userPart))
-			responseMap.put(userPart, generateSet(":${thisHostmask} PART ${channel}", ":${thisHostmask} JOIN :${channel}"));
+			responseMap.put(userPart, generateResponseSet(":${thisHostmask} PART ${channel}", ":${thisHostmask} JOIN :${channel}"));
 		if (getPropertyAsBoolean(userQuit))
-			responseMap.put(userQuit, generateSet(":${thisHostmask} QUIT :${thisNick}", ":${thisHostmask} JOIN :${channel}"));
+			responseMap.put(userQuit, generateResponseSet(":${thisHostmask} QUIT :${thisNick}", ":${thisHostmask} JOIN :${channel}"));
 
 		//Randomly shuffle responses and compact response to a single response queue
 		List<String> randomKeys = new ArrayList(responseMap.keySet());
@@ -122,12 +127,12 @@ public class IrcBotSampler extends AbstractSampler {
 		res.setSampleLabel(getName());
 
 		try {
-			if(responseItems.isEmpty()) {
+			if (responseItems.isEmpty()) {
 				log.debug("Generating response items for IRC Sampler #" + botNumber);
 				init();
 				lastItem = -1;
 			}
-			
+
 			//Make sure the server is setup
 			if (server == null) {
 				res.setResponseCode("400");
@@ -160,39 +165,26 @@ public class IrcBotSampler extends AbstractSampler {
 			String lineItem = responseItems.get(lastItem + 1);
 			String lineType = responseTypes.get(lastItem + 1);
 			lastItem++;
+
+			//Replace channel if nessesary
+			if (lineItem.contains("${channel}")) {
+				String channelLine = getPropertyAsString(channelPrefix) + channelRandom.nextInt(getPropertyAsInt(numChannels) + 1);
+				lineItem = lineItem.replace("${channel}", channelLine);
+				requestData.append("${channel} - ").append(channelLine).append("\n\r");
+			}
+			requestData.append("Processed Line - ").append(lineItem);
+
+			res.setSamplerData(requestData.toString());
 			
-			//Pad nick with 0s to generate a unique botName
-			String thisNickLine = getPropertyAsString(botPrefix) + botNumber;
-			thisNickLine = StringUtils.rightPad(thisNickLine, getPropertyAsString(botPrefix).length() + 9, "0");
-
-			//Build the line to send
-			String thisHostmaskLine = thisNickLine + "!~jmeter@bots.jmeter";
-			String channelLine = getPropertyAsString(channelPrefix) + channelRandom.nextInt(getPropertyAsInt(numChannels) + 1);
-			String targetNickLine = getPropertyAsString(targetNick);
-			String commandLine = getPropertyAsString(command);
-
-			String line = lineItem;
-			line = line.replace("${thisNick}", thisNickLine);
-			line = line.replace("${thisHostmask}", thisHostmaskLine);
-			line = line.replace("${channel}", channelLine);
-			line = line.replace("${targetNick}", targetNickLine);
-			line = line.replace("${command}", commandLine);
-
-			String requestData = "Unprocessed Line - " + lineItem + "\n\r"
-					+ "${thisNick} - " + thisNickLine + "\n\r"
-					+ "${thisHostmask} - " + thisHostmaskLine + "\n\r"
-					+ "${channel} - " + channelLine + "\n\r"
-					+ "${targetNick} - " + targetNickLine + "\n\r"
-					+ "${command} - " + commandLine + "\n\r"
-					+ "Processed Line - " + line;
-			res.setSamplerData(requestData);
+			//Reset request data
+			requestData.setLength(requestDataLength);
 
 			/*
 			 * Perform the sampling
 			 */
 			res.sampleStart(); // Start timing
-			WaitRequest request = server.waitFor(thisNickLine);
-			server.sendToClients(line);
+			WaitRequest request = server.waitFor(thisNick);
+			server.sendToClients(lineItem);
 			request.getLatch().await();
 			res.sampleEnd(); // End timimg
 
@@ -214,9 +206,26 @@ public class IrcBotSampler extends AbstractSampler {
 		return res;
 	}
 
-	protected Set<String> generateSet(String... responses) {
+	protected Set<String> generateResponseSet(String... responses) {
 		Set<String> responseSet = new HashSet();
-		responseSet.addAll(Arrays.asList(responses));
+		for (String curResponse : responses) {
+			String thisHostmaskLine = thisNick + "!~jmeter@bots.jmeter";
+
+			String targetNickLine = getPropertyAsString(targetNick);
+			String commandLine = getPropertyAsString(command);
+			curResponse = StringUtils.replace(curResponse, "${thisNick}", thisNick);
+			curResponse = StringUtils.replace(curResponse, "${thisHostmask}", thisHostmaskLine);
+			curResponse = StringUtils.replace(curResponse, "${targetNick}", targetNickLine);
+			curResponse = StringUtils.replace(curResponse, "${command}", commandLine);
+			if (requestData == null) {
+				requestData.append("${thisNick} - ").append(thisNick).append("\n\r")
+						.append("${thisHostmask} - ").append(thisHostmaskLine).append("\n\r")
+						.append("${targetNick} - ").append(targetNickLine).append("\n\r")
+						.append("${command} - ").append(commandLine).append("\n\r");
+				requestDataLength = requestData.length();
+			}
+			responseSet.add(curResponse);
+		}
 		return responseSet;
 	}
 
