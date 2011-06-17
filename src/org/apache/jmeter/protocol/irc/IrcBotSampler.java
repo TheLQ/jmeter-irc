@@ -64,7 +64,7 @@ public class IrcBotSampler extends AbstractSampler {
 	protected int botNumber;
 	protected IrcServer server = IrcBotGui.getServer();
 	protected int lastItem = -1;
-	protected LinkedList<String> responseItems = new LinkedList<String>();
+	protected List<String> responseItems = new ArrayList();
 	protected static Random channelRandom = new Random();
 	protected String thisNick;
 	protected StringBuilder requestData;
