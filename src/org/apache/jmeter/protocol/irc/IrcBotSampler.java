@@ -152,7 +152,7 @@ public class IrcBotSampler extends AbstractSampler {
 			}
 
 			//Reset last item if nessesary
-			if (lastItem > responseItems.size())
+			if (lastItem + 1 >= responseItems.size())
 				lastItem = -1;
 
 			//Get next item in the list
