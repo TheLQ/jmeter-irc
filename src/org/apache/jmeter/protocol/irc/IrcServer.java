@@ -115,8 +115,7 @@ public class IrcServer {
 				synchronized (waitRequests) {
 					for (Iterator<WaitRequest> requestItr = waitRequests.iterator(); requestItr.hasNext();) {
 						WaitRequest curRequest = requestItr.next();
-						String name = curRequest.getName();
-						if (inputLine.contains(name)) {
+						if (inputLine.contains(curRequest.getName())) {
 							curRequest.setLine(inputLine);
 							curRequest.getLatch().countDown();
 							requestItr.remove();
