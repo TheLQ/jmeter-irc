@@ -120,6 +120,7 @@ public class IrcServer {
 							curRequest.setLine(inputLine);
 							curRequest.getLatch().countDown();
 							requestItr.remove();
+							break;
 						}
 					}
 				}
