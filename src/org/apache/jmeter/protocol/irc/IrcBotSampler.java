@@ -72,7 +72,6 @@ public class IrcBotSampler extends AbstractSampler {
 	public IrcBotSampler() {
 		this.server = IrcBotGui.getServer();
 		botNumber = classCount++;
-		trace("ExampleSampler()");
 	}
 
 	public void init() {
@@ -123,8 +122,7 @@ public class IrcBotSampler extends AbstractSampler {
 
 		try {
 			init();
-			trace("sample()");
-
+			
 			//Make sure the server is setup
 			if (server == null) {
 				res.setResponseCode("400");
