@@ -121,7 +121,11 @@ public class IrcBotSampler extends AbstractSampler {
 		res.setSampleLabel(getName());
 
 		try {
-			init();
+			if(responseItems.isEmpty()) {
+				log.debug("Generating response items for IRC Sampler #" + botNumber);
+				init();
+				lastItem = -1;
+			}
 			
 			//Make sure the server is setup
 			if (server == null) {
