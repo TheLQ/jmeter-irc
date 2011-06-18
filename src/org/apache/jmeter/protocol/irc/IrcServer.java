@@ -49,7 +49,7 @@ public class IrcServer {
 	protected int port;
 	protected ServerSocket server;
 	protected Set<Client> clients = Collections.synchronizedSet(new HashSet());
-	protected final List<WaitRequest> waitRequests = new ArrayList();
+	protected final List<WaitRequest> waitRequests = new ArrayList(1000);
 	protected final String serverAddress = "irc.jmeter";
 	@Getter
 	protected boolean closedGood = false;
