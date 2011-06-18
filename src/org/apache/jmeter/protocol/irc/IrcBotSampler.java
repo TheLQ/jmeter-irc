@@ -190,7 +190,7 @@ public class IrcBotSampler extends AbstractSampler {
 			res.setSuccessful(true);
 		} catch (Exception ex) {
 			server.removeRequest(request);
-			log.debug("", ex);
+			log.debug("Exception encountered when executing Sample", ex);
 			res.setResponseCode("500");
 			res.setResponseMessage(ex.toString());
 			res.setResponseData("ERROR IN SAMPLING: " + ExceptionUtils.getFullStackTrace(ex), null);
