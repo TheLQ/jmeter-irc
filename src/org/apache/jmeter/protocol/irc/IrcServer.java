@@ -157,6 +157,14 @@ public class IrcServer {
 		}
 	}
 
+	public void removeRequest(WaitRequest request) {
+		if (request != null) {
+			//Countdown the latch so the waitRequest can be completely GC'd
+			request.getLatch().countDown();
+			waitRequests.remove(request);
+		}
+	}
+
 	public void close() throws IOException {
 		closedGood = true;
 		//Close down all of the clients

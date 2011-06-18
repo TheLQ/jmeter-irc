@@ -118,6 +118,7 @@ public class IrcBotSampler extends AbstractSampler {
 		res.setSuccessful(false); // Assume failure
 		res.setSampleLabel(getName());
 
+		WaitRequest request = null;
 		try {
 			if (responseItems.isEmpty()) {
 				log.debug("Generating response items for IRC Sampler #" + botNumber);
@@ -174,7 +175,7 @@ public class IrcBotSampler extends AbstractSampler {
 			 * Perform the sampling
 			 */
 			res.sampleStart(); // Start timing
-			WaitRequest request = server.waitFor(thisNick);
+			request = server.waitFor(thisNick);
 			server.sendToClients(lineItem);
 			request.getLatch().await();
 			res.sampleEnd(); // End timimg
@@ -188,6 +189,7 @@ public class IrcBotSampler extends AbstractSampler {
 			res.setResponseCodeOK();
 			res.setSuccessful(true);
 		} catch (Exception ex) {
+			server.removeRequest(request);
 			log.debug("", ex);
 			res.setResponseCode("500");
 			res.setResponseMessage(ex.toString());
