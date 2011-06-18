@@ -221,14 +221,4 @@ public class IrcBotSampler extends AbstractSampler {
 		}
 		return responseSet;
 	}
-
-	/*
-	 * Helper method
-	 */
-	private void trace(String s) {
-		String tl = getName();
-		String tn = Thread.currentThread().getName();
-		String th = this.toString();
-		log.debug(tn + " (" + classCount + ") " + tl + " " + s + " " + th);
-	}
 }
