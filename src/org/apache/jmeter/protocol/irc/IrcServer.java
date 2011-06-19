@@ -106,9 +106,6 @@ public class IrcServer {
 			//Read input from user
 			Input:
 			while ((inputLine = client.getIn().readLine()) != null) {
-				client.log("Recieved line from client - " + inputLine);
-				if (inputLine.toUpperCase().trim().startsWith("JOIN "))
-					sendToClients(":" + client.getInitNick() + "!~client@clients.jmeter JOIN :" + inputLine.split(" ", 2)[1]);
 				//See if there are any wait requests on this
 				synchronized (samplers) {
 					for (Iterator<IrcBotSampler> samplerItr = samplers.iterator(); samplerItr.hasNext();) {
@@ -117,8 +114,11 @@ public class IrcServer {
 							continue Input;
 						}
 					}
-					log.warn("Client # " + client.getClientNum() + "Line not matched - " + inputLine);
 				}
+				if (inputLine.toUpperCase().trim().startsWith("JOIN "))
+					sendToClients(":" + client.getInitNick() + "!~client@clients.jmeter JOIN :" + inputLine.split(" ", 2)[1]);
+				else
+					log.warn("Client # " + client.getClientNum() + "Line not matched - " + inputLine);
 			}
 
 			//Client has disconnected, forget about
