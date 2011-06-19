@@ -32,11 +32,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
-import lombok.Setter;
 import org.apache.jorphan.logging.LoggingManager;
 import org.apache.log.Logger;
 
@@ -49,7 +46,7 @@ public class IrcServer {
 	protected int port;
 	protected ServerSocket server;
 	protected Set<Client> clients = Collections.synchronizedSet(new HashSet());
-	protected final List<WaitRequest> waitRequests = new ArrayList(1000);
+	protected final List<IrcBotSampler> samplers = new ArrayList(1000);
 	protected final String serverAddress = "irc.jmeter";
 	@Getter
 	protected boolean closedGood = false;
@@ -113,13 +110,10 @@ public class IrcServer {
 				if (inputLine.toUpperCase().trim().startsWith("JOIN "))
 					sendToClients(":" + client.getInitNick() + "!~client@clients.jmeter JOIN :" + inputLine.split(" ", 2)[1]);
 				//See if there are any wait requests on this
-				synchronized (waitRequests) {
-					for (Iterator<WaitRequest> requestItr = waitRequests.iterator(); requestItr.hasNext();) {
-						WaitRequest curRequest = requestItr.next();
-						if (inputLine.contains(curRequest.getName())) {
-							curRequest.setLine(inputLine);
-							curRequest.getLatch().countDown();
-							requestItr.remove();
+				synchronized (samplers) {
+					for (Iterator<IrcBotSampler> samplerItr = samplers.iterator(); samplerItr.hasNext();) {
+						if(samplerItr.next().parseLine(inputLine)) {
+							samplerItr.remove();
 							continue Input;
 						}
 					}
@@ -136,13 +130,10 @@ public class IrcServer {
 		}
 	}
 
-	public WaitRequest waitFor(String botName) {
-		WaitRequest request = new WaitRequest();
-		request.setName(botName);
-		synchronized (waitRequests) {
-			waitRequests.add(request);
+	public void addSampler(IrcBotSampler sampler) {
+		synchronized (samplers) {
+			samplers.add(sampler);
 		}
-		return request;
 	}
 
 	public void forgetClient(Client client) {
@@ -157,11 +148,9 @@ public class IrcServer {
 		}
 	}
 
-	public void removeRequest(WaitRequest request) {
-		if (request != null) {
-			//Countdown the latch so the waitRequest can be completely GC'd
-			request.getLatch().countDown();
-			waitRequests.remove(request);
+	public void removeSampler(IrcBotSampler sampler) {
+		synchronized (samplers) {
+			samplers.remove(sampler);
 		}
 	}
 
@@ -211,16 +200,7 @@ public class IrcServer {
 			log.debug(clientNum + ": " + line);
 		}
 	}
-
-	@Data
-	public class WaitRequest {
-		protected String name;
-		@Setter(AccessLevel.NONE)
-		protected CountDownLatch latch = new CountDownLatch(1);
-		@Setter(AccessLevel.PACKAGE)
-		protected String line;
-	}
-
+	
 	public static void main(String[] args) throws IOException {
 		IrcServer server = new IrcServer(6667);
 		server.init();
