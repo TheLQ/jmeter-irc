@@ -162,7 +162,7 @@ public class IrcBotSampler extends AbstractSampler {
 			//Replace channel if nessesary
 			if (lineItem.contains("${channel}")) {
 				String channelLine = getPropertyAsString(channelPrefix) + channelRandom.nextInt(getPropertyAsInt(numChannels) + 1);
-				lineItem = lineItem.replace("${channel}", channelLine);
+				lineItem = StringUtils.replace(lineItem, "${channel}", channelLine);
 				requestData.append("${channel} - ").append(channelLine).append("\n\r");
 			}
 			requestData.append("Processed Line - ").append(lineItem);
