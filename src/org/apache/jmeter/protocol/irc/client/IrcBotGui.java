@@ -288,12 +288,12 @@ public class IrcBotGui extends AbstractSamplerGui {
 
 	@Override
 	public String getStaticLabel() {
-		return "IRC Bot";
+		return "IRC - Client";
 	}
 
 	@Override
 	public String getLabelResource() {
-		return "IRC Bot";
+		return "IRC - Client";
 	}
 
 	@Override
