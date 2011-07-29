@@ -232,15 +232,13 @@ public class IrcBotSampler extends AbstractSampler implements TestListener, Comp
 	}
 
 	@Override
-	public void testStarted() {
-		
-		System.out.println("IRC Bot Sampler " + botNumber + " - Test started");
+	public void testEnded() {
+		server.clearSamplers();
 	}
 
 	@Override
-	public void testEnded() {
-		server.clearSamplers();
-		System.out.println("IRC Bot Sampler " + botNumber + " - Test ended");
+	public void testStarted() {
+		//Do nothing
 	}
 
 	@Override
