@@ -193,9 +193,4 @@ public class IrcServer {
 			return getClientNum() - o.getClientNum();
 		}
 	}
-
-	public static void main(String[] args) throws IOException {
-		IrcServer server = new IrcServer(6667);
-		server.init();
-	}
 }

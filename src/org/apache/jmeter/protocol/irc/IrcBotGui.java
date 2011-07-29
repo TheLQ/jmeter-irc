@@ -330,19 +330,4 @@ public class IrcBotGui extends AbstractSamplerGui {
 	static IrcServer getServer() {
 		return server;
 	}
-
-	public static void main(String[] args) {
-		JMeterUtils.getProperties("jmeter.properties");
-
-		//Create and set up the window.
-		JFrame frame = new JFrame("IRC Bot GUI");
-		frame.setSize(700, 500);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-		//Add contents to the window.
-		frame.add(new IrcBotGui());
-
-		//Display the window.
-		frame.setVisible(true);
-	}
 }
