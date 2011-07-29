@@ -26,12 +26,9 @@ import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
 import lombok.Data;
 import lombok.Getter;
 import org.apache.jorphan.logging.LoggingManager;
@@ -45,8 +42,8 @@ public class IrcServer {
 	private static final Logger log = LoggingManager.getLoggerForClass();
 	protected int port;
 	protected ServerSocket server;
-	protected Set<Client> clients = Collections.synchronizedSet(new HashSet());
-	protected final List<IrcBotSampler> samplers = new ArrayList(1000);
+	protected final ConcurrentSkipListSet<Client> clients = new ConcurrentSkipListSet<Client>();
+	protected final ConcurrentSkipListSet<IrcBotSampler> samplers = new ConcurrentSkipListSet<IrcBotSampler>();
 	protected final String serverAddress = "irc.jmeter";
 	@Getter
 	protected boolean closedGood = false;
@@ -107,14 +104,9 @@ public class IrcServer {
 			Input:
 			while ((inputLine = client.getIn().readLine()) != null) {
 				//See if there are any wait requests on this
-				synchronized (samplers) {
-					for (Iterator<IrcBotSampler> samplerItr = samplers.iterator(); samplerItr.hasNext();) {
-						if(samplerItr.next().parseLine(inputLine)) {
-							samplerItr.remove();
-							continue Input;
-						}
-					}
-				}
+				for (IrcBotSampler curSampler : samplers)
+					if (curSampler.parseLine(inputLine))
+						continue Input;
 				if (inputLine.toUpperCase().trim().startsWith("JOIN "))
 					sendToClients(":" + client.getInitNick() + "!~client@clients.jmeter JOIN :" + inputLine.split(" ", 2)[1]);
 				else
@@ -131,9 +123,7 @@ public class IrcServer {
 	}
 
 	public void addSampler(IrcBotSampler sampler) {
-		synchronized (samplers) {
-			samplers.add(sampler);
-		}
+		samplers.add(sampler);
 	}
 
 	public void forgetClient(Client client) {
@@ -148,10 +138,8 @@ public class IrcServer {
 		}
 	}
 
-	public void removeSampler(IrcBotSampler sampler) {
-		synchronized (samplers) {
-			samplers.remove(sampler);
-		}
+	public void clearSamplers() {
+		samplers.clear();
 	}
 
 	public void close() throws IOException {
@@ -180,7 +168,7 @@ public class IrcServer {
 	}
 
 	@Data
-	protected static class Client {
+	protected static class Client implements Comparable<Client> {
 		protected Socket socket;
 		protected BufferedReader in;
 		protected BufferedWriter out;
@@ -199,8 +187,13 @@ public class IrcServer {
 		public void log(String line) {
 			log.debug(clientNum + ": " + line);
 		}
+
+		@Override
+		public int compareTo(Client o) {
+			return getClientNum() - o.getClientNum();
+		}
 	}
-	
+
 	public static void main(String[] args) throws IOException {
 		IrcServer server = new IrcServer(6667);
 		server.init();
