@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with PircBotX.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.apache.jmeter.protocol.irc;
+package org.apache.jmeter.protocol.irc.client;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
