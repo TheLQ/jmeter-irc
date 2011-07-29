@@ -27,9 +27,11 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.jmeter.engine.event.LoopIterationEvent;
 import org.apache.jmeter.samplers.AbstractSampler;
 import org.apache.jmeter.samplers.Entry;
 import org.apache.jmeter.samplers.SampleResult;
+import org.apache.jmeter.testelement.TestListener;
 import org.apache.jorphan.logging.LoggingManager;
 import org.apache.log.Logger;
 
@@ -37,7 +39,7 @@ import org.apache.log.Logger;
  *
  * @author lordquackstar
  */
-public class IrcBotSampler extends AbstractSampler {
+public class IrcBotSampler extends AbstractSampler implements TestListener, Comparable<IrcBotSampler> {
 	private static final Logger log = LoggingManager.getLoggerForClass();
 	public static final String botPrefix = "IrcBotSampler.botPrefix";
 	public static final String channelPrefix = "IrcBotSampler.channelPrefix";
@@ -119,7 +121,7 @@ public class IrcBotSampler extends AbstractSampler {
 		SampleResult res = new SampleResult();
 		res.setSuccessful(false); // Assume failure
 		res.setSampleLabel(getName());
-		
+
 		try {
 			if (responseItems.isEmpty()) {
 				log.debug("Generating response items for IRC Sampler #" + botNumber);
@@ -168,7 +170,7 @@ public class IrcBotSampler extends AbstractSampler {
 			requestData.append("Processed Line - ").append(lineItem);
 
 			res.setSamplerData(requestData.toString());
-			
+
 			//Reset request data
 			requestData.setLength(requestDataLength);
 
@@ -192,7 +194,6 @@ public class IrcBotSampler extends AbstractSampler {
 			res.setSuccessful(true);
 		} catch (Exception ex) {
 			log.debug("Exception encountered when executing Sample", ex);
-			server.removeSampler(this);
 			res.setResponseCode("500");
 			res.setResponseMessage(ex.toString());
 			res.setResponseData("ERROR IN SAMPLING: " + ExceptionUtils.getFullStackTrace(ex), null);
@@ -200,14 +201,14 @@ public class IrcBotSampler extends AbstractSampler {
 		}
 		return res;
 	}
-	
+
 	public boolean parseLine(String line) {
-		 if (line.contains(thisNick)) {
-			 responseLine = line;
-			 latch.countDown();
-			 return true;
-		 }
-		 return false;
+		if (line.contains(thisNick)) {
+			responseLine = line;
+			latch.countDown();
+			return true;
+		}
+		return false;
 	}
 
 	protected Set<String> generateResponseSet(String... responses) {
@@ -222,14 +223,43 @@ public class IrcBotSampler extends AbstractSampler {
 			curResponse = StringUtils.replace(curResponse, "${targetNick}", targetNickLine);
 			curResponse = StringUtils.replace(curResponse, "${command}", commandLine);
 			if (requestData == null) {
-				requestData = new StringBuilder().append("${thisNick} - ").append(thisNick).append("\n\r")
-						.append("${thisHostmask} - ").append(thisHostmaskLine).append("\n\r")
-						.append("${targetNick} - ").append(targetNickLine).append("\n\r")
-						.append("${command} - ").append(commandLine).append("\n\r");
+				requestData = new StringBuilder().append("${thisNick} - ").append(thisNick).append("\n\r").append("${thisHostmask} - ").append(thisHostmaskLine).append("\n\r").append("${targetNick} - ").append(targetNickLine).append("\n\r").append("${command} - ").append(commandLine).append("\n\r");
 				requestDataLength = requestData.length();
 			}
 			responseSet.add(curResponse);
 		}
 		return responseSet;
+	}
+
+	@Override
+	public void testStarted() {
+		
+		System.out.println("IRC Bot Sampler " + botNumber + " - Test started");
+	}
+
+	@Override
+	public void testEnded() {
+		server.clearSamplers();
+		System.out.println("IRC Bot Sampler " + botNumber + " - Test ended");
+	}
+
+	@Override
+	public void testStarted(String host) {
+		//Do nothing
+	}
+
+	@Override
+	public void testEnded(String host) {
+		//Do nothing
+	}
+
+	@Override
+	public void testIterationStart(LoopIterationEvent event) {
+		//Do nothing
+	}
+
+	@Override
+	public int compareTo(IrcBotSampler o) {
+		return botNumber - o.botNumber;
 	}
 }
