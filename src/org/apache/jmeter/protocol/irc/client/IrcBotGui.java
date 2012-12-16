@@ -75,6 +75,7 @@ public class IrcBotGui extends AbstractSamplerGui {
 	protected JCheckBox userQuit;
 	protected static IrcServer server;
 	JLabel statusLabel;
+	JLabel clientLabel;
 	JButton startStopButton;
 
 	public IrcBotGui() {
@@ -97,6 +98,10 @@ public class IrcBotGui extends AbstractSamplerGui {
 		HorizontalPanel panel = new HorizontalPanel();
 
 		statusLabel = new JLabel("Status: Stopped");
+		panel.add(statusLabel);
+		
+		clientLabel = new JLabel("");
+		updateClientConnected(false);
 		panel.add(statusLabel);
 
 		startStopButton = new JButton("Start");
@@ -146,7 +151,7 @@ public class IrcBotGui extends AbstractSamplerGui {
 				try {
 					if (server != null)
 						server.close();
-					server = new IrcServer(portValue);
+					server = new IrcServer(portValue, IrcBotGui.this);
 					server.init();
 				} catch (final IOException ex) {
 					if (!server.isClosedGood())
@@ -284,6 +289,13 @@ public class IrcBotGui extends AbstractSamplerGui {
 		panel.add(label);
 		panel.add(field);
 		return panel;
+	}
+	
+	protected void updateClientConnected(boolean hasClient) {
+		if(hasClient)
+			clientLabel.setText("Client connected");
+		else
+			clientLabel.setText("Client not connected");
 	}
 
 	@Override

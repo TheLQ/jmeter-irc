@@ -47,9 +47,11 @@ public class IrcServer {
 	protected final String serverAddress = "irc.jmeter";
 	@Getter
 	protected boolean closedGood = false;
+	protected IrcBotGui gui;
 
-	public IrcServer(int port) {
+	public IrcServer(int port, IrcBotGui gui) {
 		this.port = port;
+		this.gui = gui;
 	}
 
 	public void init() throws IOException {
@@ -60,6 +62,7 @@ public class IrcServer {
 			final Client curClient = new Client(server.accept());
 			curClient.log("New client connection accepted");
 			clients.add(curClient);
+			gui.updateClientConnected(true);
 			//Handle client input in new thread
 			new Thread() {
 				@Override
@@ -119,6 +122,7 @@ public class IrcServer {
 			log.error("Client #" + client.getClientNum() + " raised exception during input. Forgetting about client now...", ex);
 		} finally {
 			forgetClient(client);
+			gui.updateClientConnected(false);
 		}
 	}
 
