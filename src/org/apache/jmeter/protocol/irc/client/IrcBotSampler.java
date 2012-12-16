@@ -138,7 +138,7 @@ public class IrcBotSampler extends AbstractSampler implements TestListener, Comp
 			}
 
 			//Make sure there are clients to talk to
-			if (server.getClients().isEmpty()) {
+			if (server.getClient() == null) {
 				res.setResponseCode("404");
 				res.setResponseMessage("No clients to talk to!");
 				res.setDataType(SampleResult.TEXT);
@@ -180,7 +180,7 @@ public class IrcBotSampler extends AbstractSampler implements TestListener, Comp
 			latch = new CountDownLatch(1);
 			server.addSampler(this);
 			res.sampleStart(); // Start timing
-			server.sendToClients(lineItem);
+			server.sendToClient(lineItem);
 			latch.await();
 			res.sampleEnd(); // End timimg
 

@@ -10,11 +10,11 @@
  *
  * JMeter-IRC is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with PircBotX.  If not, see <http://www.gnu.org/licenses/>.
+ * along with PircBotX. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.apache.jmeter.protocol.irc.client;
 
@@ -42,7 +42,7 @@ public class IrcServer {
 	private static final Logger log = LoggingManager.getLoggerForClass();
 	protected int port;
 	protected ServerSocket server;
-	protected final ConcurrentSkipListSet<Client> clients = new ConcurrentSkipListSet<Client>();
+	protected Client client;
 	protected final ConcurrentSkipListSet<IrcBotSampler> samplers = new ConcurrentSkipListSet<IrcBotSampler>();
 	protected final String serverAddress = "irc.jmeter";
 	@Getter
@@ -59,21 +59,27 @@ public class IrcServer {
 		log.info("Server created on port " + port);
 		while (true) {
 			log.info("Waiting for clients");
-			final Client curClient = new Client(server.accept());
-			curClient.log("New client connection accepted");
-			clients.add(curClient);
+			Socket newSocket = server.accept();
+			if (client != null) {
+				//Only can handle one client
+				log.warn("Disconnecting new client, a current client is already connected");
+				newSocket.close();
+			}
+			client = new Client(newSocket);
+			client.log("New client connection accepted");
 			gui.updateClientConnected(true);
 			//Handle client input in new thread
 			new Thread() {
 				@Override
 				public void run() {
-					handleClientInput(curClient);
+					handleClientInput();
 				}
 			}.start();
+
 		}
 	}
 
-	public void handleClientInput(Client client) {
+	public void handleClientInput() {
 		try {
 			String inputLine = "";
 			try {
@@ -111,7 +117,7 @@ public class IrcServer {
 					if (curSampler.parseLine(inputLine))
 						continue Input;
 				if (inputLine.toUpperCase().trim().startsWith("JOIN "))
-					sendToClients(":" + client.getInitNick() + "!~client@clients.jmeter JOIN :" + inputLine.split(" ", 2)[1]);
+					sendToClient(":" + client.getInitNick() + "!~client@clients.jmeter JOIN :" + inputLine.split(" ", 2)[1]);
 				else
 					log.warn("Client # " + client.getClientNum() + "Line not matched - " + inputLine);
 			}
@@ -131,14 +137,14 @@ public class IrcServer {
 	}
 
 	public void forgetClient(Client client) {
-		client.log("Forgetting about client ");
+		client.log("Forgetting about client #" + client.getClientNum());
 		try {
 			client.getIn().close();
 			client.getOut().close();
 		} catch (IOException ex) {
 			log.error("Client #" + client.getClientNum() + " raised exception when disconnecting", ex);
 		} finally {
-			clients.remove(client);
+			client = null;
 		}
 	}
 
@@ -149,26 +155,24 @@ public class IrcServer {
 	public void close() throws IOException {
 		closedGood = true;
 		//Close down all of the clients
-		for (Client curClient : clients)
-			forgetClient(curClient);
+		forgetClient(client);
 		if (server.isBound())
 			server.close();
 	}
 
-	public void sendToClients(String line) throws IOException {
-		for (Client curClient : clients)
-			synchronized (curClient.getOut()) {
-				curClient.getOut().write(line + "\r\n");
-				curClient.getOut().flush();
-			}
+	public void sendToClient(String line) throws IOException {
+		synchronized (client.getOut()) {
+			client.getOut().write(line + "\r\n");
+			client.getOut().flush();
+		}
 	}
 
 	public int getPort() {
 		return port;
 	}
 
-	public Set<Client> getClients() {
-		return clients;
+	public Client getClient() {
+		return client;
 	}
 
 	@Data
